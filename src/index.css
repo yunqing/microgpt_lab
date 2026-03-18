@@ -73,3 +73,30 @@ code {
 * {
   -webkit-overflow-scrolling: touch;
 }
+
+/* Fix mobile scrolling issues */
+.overflow-y-auto, .overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  /* Ensure proper height calculation for mobile */
+  position: relative;
+}
+
+/* Ensure touch events work on mobile */
+@media (max-width: 1024px) {
+  .overflow-y-auto {
+    touch-action: pan-y;
+    /* Enable momentum scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+  }
+  .overflow-x-auto {
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Fix for mobile viewport height */
+  .h-screen {
+    height: 100vh;
+    height: 100dvh; /* Use dynamic viewport height if supported */
+  }
+}

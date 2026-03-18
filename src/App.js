@@ -122,7 +122,7 @@ export default function App() {
           </div>
 
           {/* Left: Visualization */}
-          <div className={`${activeTab === 'viz' ? 'flex' : 'hidden'} lg:flex lg:w-1/2 border-r border-slate-700 overflow-hidden flex-col`}>
+          <div className={`${activeTab === 'viz' ? 'flex' : 'hidden'} lg:flex lg:w-1/2 border-r border-slate-700 overflow-hidden flex-col min-h-0`}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentLevelId}
@@ -138,7 +138,7 @@ export default function App() {
           </div>
 
           {/* Right: Curriculum content */}
-          <div className={`${activeTab === 'content' ? 'flex' : 'hidden'} lg:flex lg:w-1/2 overflow-hidden flex-col`}>
+          <div className={`${activeTab === 'content' ? 'flex' : 'hidden'} lg:flex lg:w-1/2 overflow-hidden flex-col min-h-0`}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentLevelId}

@@ -28,7 +28,7 @@ export default function VisualizationPanel({ level }) {
   const VizComponent = VIZ_MAP[level.content.visualType];
 
   return (
-    <div className="w-full flex flex-col gap-3 sm:gap-4 overflow-y-auto p-3 sm:p-4">
+    <div className="h-full w-full flex flex-col gap-3 sm:gap-4 overflow-y-auto p-3 sm:p-4">
       {/* Trace diagram */}
       <TraceDiagram currentLevel={level.id} />
 
