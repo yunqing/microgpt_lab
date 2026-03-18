@@ -7,7 +7,7 @@ export default function ContentPanel({ level, onBadgeEarned, badgesEarned, onCom
   const levelBadgeEarned = badgesEarned.includes(level.content.insight.badge);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-5">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-5">
       {/* Level header */}
       <motion.div
         key={level.id}
@@ -23,7 +23,7 @@ export default function ContentPanel({ level, onBadgeEarned, badgesEarned, onCom
             </span>
           )}
         </div>
-        <h2 className="text-xl font-bold text-slate-100">{level.content.heading}</h2>
+        <h2 className="text-lg sm:text-xl font-bold text-slate-100">{level.content.heading}</h2>
       </motion.div>
 
       {/* Main content */}

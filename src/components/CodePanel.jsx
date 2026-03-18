@@ -14,8 +14,8 @@ const codeStyle = {
     ...atomOneDark['hljs'],
     background: 'transparent',
     padding: '0',
-    fontSize: '12px',
-    lineHeight: '1.6',
+    fontSize: '11px',
+    lineHeight: '1.5',
     fontFamily: "'Fira Code', 'Cascadia Code', 'Courier New', monospace",
   }
 };
@@ -57,7 +57,7 @@ export default function CodePanel({ level }) {
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="overflow-x-auto p-4 max-h-64 overflow-y-auto">
+            <div className="overflow-x-auto p-3 sm:p-4 max-h-64 overflow-y-auto">
               <SyntaxHighlighter
                 language="python"
                 style={codeStyle}

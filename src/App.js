@@ -11,6 +11,8 @@ export default function App() {
   const [completedLevels, setCompletedLevels] = useState(0);
   const [earnedBadges, setEarnedBadges] = useState([]);
   const [notification, setNotification] = useState(null);
+  const [activeTab, setActiveTab] = useState('content'); // 'content' or 'viz'
+  const [showNav, setShowNav] = useState(false);
 
   const currentLevel = CURRICULUM.find(l => l.id === currentLevelId);
 
@@ -41,6 +43,7 @@ export default function App() {
 
   const handleSelectLevel = useCallback((id) => {
     setCurrentLevelId(id);
+    setShowNav(false);
   }, []);
 
   return (
@@ -50,19 +53,76 @@ export default function App() {
         earnedBadges={earnedBadges}
         totalParams={TOTAL_PARAMS}
         paramProgress={paramProgress}
+        onMenuClick={() => setShowNav(!showNav)}
+        currentLevel={currentLevel}
       />
 
-      <div className="flex flex-1 min-h-0">
-        <LevelNav
-          currentLevel={currentLevelId}
-          completedLevels={completedLevels}
-          onSelectLevel={handleSelectLevel}
-        />
+      <div className="flex flex-1 min-h-0 relative">
+        {/* Mobile nav overlay */}
+        <AnimatePresence>
+          {showNav && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+                onClick={() => setShowNav(false)}
+              />
+              <motion.div
+                initial={{ x: -224 }}
+                animate={{ x: 0 }}
+                exit={{ x: -224 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="fixed left-0 top-0 bottom-0 z-30 lg:hidden"
+              >
+                <LevelNav
+                  currentLevel={currentLevelId}
+                  completedLevels={completedLevels}
+                  onSelectLevel={handleSelectLevel}
+                />
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Desktop nav */}
+        <div className="hidden lg:block">
+          <LevelNav
+            currentLevel={currentLevelId}
+            completedLevels={completedLevels}
+            onSelectLevel={handleSelectLevel}
+          />
+        </div>
 
         {/* Main split-screen content */}
-        <div className="flex flex-1 min-w-0">
+        <div className="flex flex-col lg:flex-row flex-1 min-w-0">
+          {/* Mobile tabs */}
+          <div className="lg:hidden flex border-b border-slate-700 bg-slate-900">
+            <button
+              onClick={() => setActiveTab('content')}
+              className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                activeTab === 'content'
+                  ? 'text-cyan-400 border-b-2 border-cyan-400'
+                  : 'text-slate-400'
+              }`}
+            >
+              Content
+            </button>
+            <button
+              onClick={() => setActiveTab('viz')}
+              className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                activeTab === 'viz'
+                  ? 'text-cyan-400 border-b-2 border-cyan-400'
+                  : 'text-slate-400'
+              }`}
+            >
+              Visualization
+            </button>
+          </div>
+
           {/* Left: Visualization */}
-          <div className="w-1/2 border-r border-slate-700 overflow-hidden">
+          <div className={`${activeTab === 'viz' ? 'flex' : 'hidden'} lg:flex lg:w-1/2 border-r border-slate-700 overflow-hidden flex-col`}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentLevelId}
@@ -78,7 +138,7 @@ export default function App() {
           </div>
 
           {/* Right: Curriculum content */}
-          <div className="w-1/2 overflow-hidden">
+          <div className={`${activeTab === 'content' ? 'flex' : 'hidden'} lg:flex lg:w-1/2 overflow-hidden flex-col`}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentLevelId}

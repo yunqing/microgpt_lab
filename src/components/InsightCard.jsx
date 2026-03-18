@@ -13,7 +13,7 @@ export default function InsightCard({ insight, onBadgeEarned, badgeEarned }) {
   };
 
   return (
-    <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-4 mt-4">
+    <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-3 sm:p-4 mt-3 sm:mt-4">
       <div className="flex items-start gap-2 mb-3">
         <Lightbulb size={16} className="text-yellow-400 flex-shrink-0 mt-0.5" />
         <div>

@@ -17,7 +17,6 @@ function softmax(logits, temp) {
 function fakeLogits(step, prevChar, seed) {
   // Name-starter distribution
   const nameStarts = [0, 4, 8, 14, 20]; // a, e, i, o, u more likely at start
-  const nameEnders = [BOS]; // BOS = end of name
   const base = CHARS.map((_, i) => {
     let w = Math.sin(i * 0.4 + seed * 0.7) * 0.5 + 0.5;
     if (step === 0) w += nameStarts.includes(i) ? 1 : 0;
@@ -77,6 +76,7 @@ export default function InferenceViz() {
       timer = setTimeout(() => { step(); }, 400);
     }
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [generating, sample, done]);
 
   const topProbs = probs

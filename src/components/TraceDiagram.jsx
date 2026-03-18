@@ -13,12 +13,10 @@ const STAGES = [
 ];
 
 export default function TraceDiagram({ currentLevel }) {
-  const activeStage = STAGES.find(s => s.levels.includes(currentLevel));
-
   return (
-    <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-3">
-      <p className="text-xs text-slate-500 mb-3 uppercase tracking-wider">Trace the Token</p>
-      <div className="flex items-center gap-1 overflow-x-auto pb-1">
+    <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-2 sm:p-3">
+      <p className="text-xs text-slate-500 mb-2 sm:mb-3 uppercase tracking-wider">Trace the Token</p>
+      <div className="flex items-center gap-0.5 sm:gap-1 overflow-x-auto pb-1">
         {STAGES.map((stage, i) => {
           const isActive = stage.levels.includes(currentLevel);
           const isPast = stage.levels.every(l => l < currentLevel);
@@ -26,7 +24,7 @@ export default function TraceDiagram({ currentLevel }) {
           return (
             <div key={stage.id} className="flex items-center flex-shrink-0">
               <motion.div
-                className={`relative flex flex-col items-center px-2 py-1.5 rounded-lg border text-center transition-all ${
+                className={`relative flex flex-col items-center px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg border text-center transition-all ${
                   isActive
                     ? 'bg-cyan-500/20 border-cyan-500/60 text-cyan-300'
                     : isPast
@@ -38,8 +36,8 @@ export default function TraceDiagram({ currentLevel }) {
                 } : {}}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <span className="text-xs font-semibold font-mono leading-none">{stage.label}</span>
-                <span className="text-xs opacity-60 leading-none mt-0.5">{stage.sublabel}</span>
+                <span className="text-[10px] sm:text-xs font-semibold font-mono leading-none">{stage.label}</span>
+                <span className="text-[9px] sm:text-xs opacity-60 leading-none mt-0.5">{stage.sublabel}</span>
                 {isActive && (
                   <motion.div
                     className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full"
@@ -51,7 +49,7 @@ export default function TraceDiagram({ currentLevel }) {
 
               {/* Flow arrow with animated particle */}
               {i < STAGES.length - 1 && (
-                <div className="relative w-5 flex-shrink-0">
+                <div className="relative w-3 sm:w-5 flex-shrink-0">
                   <div className="h-px bg-slate-700 w-full" />
                   {isPast && (
                     <motion.div

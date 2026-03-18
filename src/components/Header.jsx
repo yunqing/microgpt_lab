@@ -1,16 +1,34 @@
 import { motion } from 'framer-motion';
-import { Cpu, Award } from 'lucide-react';
+import { Cpu, Award, Menu } from 'lucide-react';
 
-export default function Header({ completedLevels, earnedBadges, totalParams, paramProgress }) {
+export default function Header({ completedLevels, earnedBadges, totalParams, paramProgress, onMenuClick, currentLevel }) {
   return (
-    <header className="flex items-center justify-between px-6 py-3 bg-slate-900 border-b border-slate-700 z-10">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center">
-          <Cpu size={16} className="text-white" />
+    <header className="flex items-center justify-between px-3 sm:px-6 py-3 bg-slate-900 border-b border-slate-700 z-10">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden p-1.5 hover:bg-slate-800 rounded-lg transition-colors flex-shrink-0"
+        >
+          <Menu size={18} className="text-slate-400" />
+        </button>
+        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+          <Cpu size={14} className="text-white sm:w-4 sm:h-4" />
         </div>
-        <div>
-          <h1 className="text-sm font-bold gradient-text">MicroGPT Lab</h1>
-          <p className="text-xs text-slate-500">by @karpathy — deconstructed</p>
+        <div className="min-w-0">
+          <h1 className="text-xs sm:text-sm font-bold gradient-text truncate">MicroGPT Lab</h1>
+          <p className="text-xs text-slate-500 hidden sm:block">
+            Learn{' '}
+            <a
+              href="https://gist.github.com/karpathy/8627fe009c40f57531cb18360106ce95"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cyan-400 hover:text-cyan-300 underline transition-colors"
+            >
+              microgpt
+            </a>
+            {' '}interactively
+          </p>
+          <p className="text-xs text-slate-500 sm:hidden truncate">Lv.{currentLevel?.id}</p>
         </div>
       </div>
 
@@ -32,13 +50,13 @@ export default function Header({ completedLevels, earnedBadges, totalParams, par
       </div>
 
       {/* Badges & Progress */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
         <div className="flex items-center gap-1">
-          <Award size={14} className="text-yellow-400" />
+          <Award size={12} className="text-yellow-400 sm:w-3.5 sm:h-3.5" />
           <span className="text-xs text-yellow-400 font-mono">{earnedBadges.length}</span>
-          <span className="text-xs text-slate-500">badges</span>
+          <span className="text-xs text-slate-500 hidden sm:inline">badges</span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="hidden sm:flex items-center gap-1">
           {Array.from({ length: 10 }, (_, i) => (
             <motion.div
               key={i}

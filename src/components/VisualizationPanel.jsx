@@ -28,12 +28,12 @@ export default function VisualizationPanel({ level }) {
   const VizComponent = VIZ_MAP[level.content.visualType];
 
   return (
-    <div className="w-full flex flex-col gap-4 overflow-y-auto p-4">
+    <div className="w-full flex flex-col gap-3 sm:gap-4 overflow-y-auto p-3 sm:p-4">
       {/* Trace diagram */}
       <TraceDiagram currentLevel={level.id} />
 
       {/* Level-specific visualization */}
-      <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-4 flex-1">
+      <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-3 sm:p-4 flex-1">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
           <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">

@@ -11,6 +11,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
+  /* Better mobile scrolling */
+  -webkit-overflow-scrolling: touch;
+  /* Prevent text size adjustment on mobile */
+  -webkit-text-size-adjust: 100%;
 }
 
 code {
@@ -53,5 +57,19 @@ code {
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
   animation: gradientPulse 3s ease infinite;
+}
+
+/* Better mobile touch targets */
+@media (max-width: 640px) {
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Smooth scrolling for all scrollable areas */
+* {
+  -webkit-overflow-scrolling: touch;
 }

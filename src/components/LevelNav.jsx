@@ -18,8 +18,8 @@ const colorMap = {
 
 export default function LevelNav({ currentLevel, completedLevels, onSelectLevel }) {
   return (
-    <nav className="w-56 flex-shrink-0 bg-slate-900 border-r border-slate-700 overflow-y-auto">
-      <div className="p-3">
+    <nav className="w-56 flex-shrink-0 bg-slate-900 border-r border-slate-700 overflow-y-auto h-full">
+      <div className="p-3 pt-16 lg:pt-3">
         <p className="text-xs text-slate-500 uppercase tracking-widest mb-3 px-1">Curriculum</p>
         {CURRICULUM.map((level) => {
           const Icon = Icons[level.icon] || Icons.Circle;

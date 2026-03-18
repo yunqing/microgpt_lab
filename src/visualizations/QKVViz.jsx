@@ -29,7 +29,6 @@ export default function QKVViz() {
       {/* Three projections */}
       {['Q (Query)', 'K (Key)', 'V (Value)'].map((role, ri) => {
         const colors = ['from-cyan-600 to-cyan-800', 'from-indigo-600 to-indigo-800', 'from-violet-600 to-violet-800'];
-        const outColors = [headColors.map(c => c), headColors.map(c => c), headColors.map(c => c)];
         return (
           <div key={role}>
             <div className="flex items-center gap-3 mb-2">

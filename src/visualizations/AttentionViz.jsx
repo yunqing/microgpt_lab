@@ -39,8 +39,6 @@ export default function AttentionViz() {
   });
   const weights = softmax(scores);
 
-  const maxW = Math.max(...weights);
-
   return (
     <div className="space-y-5">
       {/* Query position selector */}
