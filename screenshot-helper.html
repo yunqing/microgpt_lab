@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screenshot Helper - MicroGPT Lab</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #06b6d4;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #06b6d4;
+            margin-top: 0;
+        }
+        .screenshot-item {
+            border-left: 4px solid #06b6d4;
+            padding-left: 15px;
+            margin-bottom: 15px;
+        }
+        .filename {
+            font-family: monospace;
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        .button {
+            display: inline-block;
+            background: #06b6d4;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0891b2;
+        }
+        .instructions {
+            background: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        ul {
+            line-height: 1.8;
+        }
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            margin-right: 10px;
+            color: #06b6d4;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <h1>📸 Screenshot Helper for MicroGPT Lab</h1>
+
+    <div class="card">
+        <h2>Quick Links</h2>
+        <a href="https://yunqing.github.io/microgpt_lab/" target="_blank" class="button">Open Live Site</a>
+        <a href="http://localhost:3000" target="_blank" class="button">Open Local Dev</a>
+    </div>
+
+    <div class="card">
+        <h2>Screenshots Needed</h2>
+
+        <div class="screenshot-item">
+            <h3>1. Desktop - Main Interface</h3>
+            <div class="filename">screenshots/desktop-main.png</div>
+            <ul>
+                <li>Open site on desktop (1920x1080 recommended)</li>
+                <li>Navigate to Level 1 or 2</li>
+                <li>Show full interface: sidebar + visualization + content</li>
+                <li>Capture full window</li>
+            </ul>
+        </div>
+
+        <div class="screenshot-item">
+            <h3>2. Desktop - Attention Visualization</h3>
+            <div class="filename">screenshots/desktop-attention.png</div>
+            <ul>
+                <li>Navigate to Level 6 (Attention Mechanism)</li>
+                <li>Show the attention weights visualization</li>
+                <li>Make sure interactive elements are visible</li>
+            </ul>
+        </div>
+
+        <div class="screenshot-item">
+            <h3>3. Mobile - Content View</h3>
+            <div class="filename">screenshots/mobile-content.png</div>
+            <ul>
+                <li>Use browser DevTools mobile view (iPhone 12 Pro)</li>
+                <li>Show "Content" tab active</li>
+                <li>Portrait orientation (375x812)</li>
+            </ul>
+        </div>
+
+        <div class="screenshot-item">
+            <h3>4. Mobile - Visualization View</h3>
+            <div class="filename">screenshots/mobile-viz.png</div>
+            <ul>
+                <li>Same mobile view</li>
+                <li>Switch to "Visualization" tab</li>
+                <li>Show tab switcher clearly</li>
+            </ul>
+        </div>
+
+        <div class="screenshot-item">
+            <h3>5. Desktop - Code Panel</h3>
+            <div class="filename">screenshots/desktop-code.png</div>
+            <ul>
+                <li>Choose any level</li>
+                <li>Expand the code panel</li>
+                <li>Show syntax highlighting</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>How to Take Screenshots</h2>
+
+        <div class="instructions">
+            <strong>macOS:</strong>
+            <ul>
+                <li><kbd>Cmd + Shift + 3</kbd> - Full screen</li>
+                <li><kbd>Cmd + Shift + 4</kbd> - Selection tool</li>
+                <li><kbd>Cmd + Shift + 4</kbd> then <kbd>Space</kbd> - Window capture</li>
+            </ul>
+        </div>
+
+        <div class="instructions">
+            <strong>Chrome DevTools (for mobile):</strong>
+            <ol>
+                <li>Open DevTools (<kbd>F12</kbd> or <kbd>Cmd + Option + I</kbd>)</li>
+                <li>Click device toolbar icon (<kbd>Cmd + Shift + M</kbd>)</li>
+                <li>Select "iPhone 12 Pro" from dropdown</li>
+                <li>Click ⋮ (three dots) → "Capture screenshot"</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Checklist</h2>
+        <ul class="checklist">
+            <li>Create <code>screenshots/</code> directory</li>
+            <li>Take desktop-main.png</li>
+            <li>Take desktop-attention.png</li>
+            <li>Take mobile-content.png</li>
+            <li>Take mobile-viz.png</li>
+            <li>Take desktop-code.png</li>
+            <li>Optimize images (< 500KB each)</li>
+            <li>Update README.md with image links</li>
+            <li>Commit and push to GitHub</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>After Taking Screenshots</h2>
+        <p>Replace the screenshot section in README.md with:</p>
+        <pre style="background: #f5f5f5; padding: 15px; border-radius: 4px; overflow-x: auto;">
+## 📸 Screenshots
+
+### Desktop View
+![Desktop Main Interface](screenshots/desktop-main.png)
+*Split-screen layout with interactive visualizations and detailed explanations*
+
+![Attention Mechanism](screenshots/desktop-attention.png)
+*Level 6: Interactive attention weight visualization*
+
+### Mobile View
+&lt;p float="left"&gt;
+  &lt;img src="screenshots/mobile-content.png" width="300" /&gt;
+  &lt;img src="screenshots/mobile-viz.png" width="300" /&gt;
+&lt;/p&gt;
+*Mobile-optimized interface with tab-based navigation*
+        </pre>
+    </div>
+
+    <div class="card" style="background: #e8f5e9;">
+        <h2>✅ Quick Test</h2>
+        <p>Before taking screenshots, verify:</p>
+        <ul>
+            <li>✓ Site loads correctly</li>
+            <li>✓ All levels are accessible</li>
+            <li>✓ Visualizations animate smoothly</li>
+            <li>✓ Mobile view switches between tabs</li>
+            <li>✓ Code panels expand/collapse</li>
+        </ul>
+    </div>
+</body>
+</html>
