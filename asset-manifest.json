@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/microgpt_lab/static/css/main.fbdbd047.css",
+    "main.js": "/microgpt_lab/static/js/main.940acc29.js",
+    "static/js/453.1365afac.chunk.js": "/microgpt_lab/static/js/453.1365afac.chunk.js",
+    "index.html": "/microgpt_lab/index.html",
+    "main.fbdbd047.css.map": "/microgpt_lab/static/css/main.fbdbd047.css.map",
+    "main.940acc29.js.map": "/microgpt_lab/static/js/main.940acc29.js.map",
+    "453.1365afac.chunk.js.map": "/microgpt_lab/static/js/453.1365afac.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.fbdbd047.css",
+    "static/js/main.940acc29.js"
+  ]
+}
