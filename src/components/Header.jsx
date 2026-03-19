@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Cpu, Award, Menu } from 'lucide-react';
+import { Cpu, Award, Menu, Star } from 'lucide-react';
 
 export default function Header({ completedLevels, earnedBadges, totalParams, paramProgress, onMenuClick, currentLevel }) {
   return (
@@ -51,6 +51,27 @@ export default function Header({ completedLevels, earnedBadges, totalParams, par
 
       {/* Badges & Progress */}
       <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+        {/* GitHub Star Button */}
+        <a
+          href="https://github.com/yunqing/microgpt_lab"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 rounded-lg transition-all group"
+        >
+          <Star size={14} className="text-slate-400 group-hover:text-yellow-400 transition-colors" />
+          <span className="text-xs text-slate-300 group-hover:text-slate-100 font-medium">Star</span>
+        </a>
+
+        {/* Mobile GitHub Star (icon only) */}
+        <a
+          href="https://github.com/yunqing/microgpt_lab"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="sm:hidden flex items-center justify-center w-8 h-8 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg transition-all"
+        >
+          <Star size={14} className="text-slate-400" />
+        </a>
+
         <div className="flex items-center gap-1">
           <Award size={12} className="text-yellow-400 sm:w-3.5 sm:h-3.5" />
           <span className="text-xs text-yellow-400 font-mono">{earnedBadges.length}</span>
