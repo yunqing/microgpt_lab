@@ -1,10 +1,14 @@
 import { motion } from 'framer-motion';
 import InsightCard from './InsightCard';
 import CodePanel from './CodePanel';
+import MultiChoiceQuiz from './MultiChoiceQuiz';
+import CodeExercise from './CodeExercise';
 import { ChevronRight } from 'lucide-react';
+import { QUIZZES } from '../data/quizzes';
 
 export default function ContentPanel({ level, onBadgeEarned, badgesEarned, onComplete, isCompleted }) {
   const levelBadgeEarned = badgesEarned.includes(level.content.insight.badge);
+  const quiz = QUIZZES[level.id];
 
   return (
     <div className="h-full overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-5">
@@ -54,6 +58,30 @@ export default function ContentPanel({ level, onBadgeEarned, badgesEarned, onCom
         onBadgeEarned={onBadgeEarned}
         badgeEarned={levelBadgeEarned}
       />
+
+      {/* ── Comprehension MCQs ── */}
+      {quiz && (
+        <motion.div
+          key={`mcq-${level.id}`}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <MultiChoiceQuiz mcqs={quiz.mcqs} levelId={level.id} />
+        </motion.div>
+      )}
+
+      {/* ── Code Exercise ── */}
+      {quiz?.codeExercise && (
+        <motion.div
+          key={`code-${level.id}`}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <CodeExercise exercise={quiz.codeExercise} levelId={level.id} />
+        </motion.div>
+      )}
 
       {/* Complete button */}
       {!isCompleted && (
