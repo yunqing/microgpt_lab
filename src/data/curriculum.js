@@ -325,7 +325,7 @@ When the model is wrong or uncertain, p_correct ≈ 0 → loss → ∞.
 
 The **\`.log()\`** method on a Value node records the backprop rule: d(log x)/dx = 1/x. When \`.backward()\` is called, gradients flow back through softmax, through the attention heads, all the way to the embedding matrices.`,
       insight: {
-        question: "Why use `math.exp` inside the softmax for converting logits to probabilities?",
+        question: "Why use the exponential function (exp) inside the softmax for converting logits to probabilities?",
         answer: "exp ensures all outputs are positive (probabilities must be ≥ 0), creates a smooth differentiable function, and amplifies differences between logits — making the model more decisive as training progresses.",
         badge: "Log Likelihood"
       },

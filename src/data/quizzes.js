@@ -6,16 +6,16 @@ export const QUIZZES = {
       {
         question: "Given docs = ['emma', 'noah', 'emma'], what is vocab_size?",
         options: [
-          "4  (a, e, m, o)",
           "5  (a, e, m, n, o)",
-          "6  (a, e, m, n, o + BOS)",
+          "6  (a, e, h, m, n, o)",
+          "7  (a, e, h, m, n, o + BOS)",
           "27 (full alphabet + BOS)"
         ],
         correct: 2,
         explanations: [
-          "Close — those are the unique chars, but you're forgetting BOS.",
-          "Right unique chars, but vocab_size = len(uchars) + 1, not len(uchars).",
-          "Correct! uchars = sorted({'a','e','m','n','o'}) = 5 chars, then +1 for BOS = 6.",
+          "Close — those are the unique chars, but you're missing 'h' from 'noah' and forgetting BOS.",
+          "Right unique chars including 'h' from 'noah', but vocab_size = len(uchars) + 1 for BOS.",
+          "Correct! uchars = sorted({'a','e','h','m','n','o'}) = 6 chars, then +1 for BOS = 7.",
           "Only if the dataset covered every letter. It's character-level, so vocab = only chars seen."
         ]
       },
