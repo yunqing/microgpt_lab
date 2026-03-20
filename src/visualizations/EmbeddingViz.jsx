@@ -71,13 +71,28 @@ export default function EmbeddingViz() {
         {/* Position selector */}
         <div>
           <label className="text-xs text-slate-500 mb-2 block">Position (wpe row): {selectedPos}</label>
+          <div className="flex gap-1 flex-wrap">
+            {Array.from({ length: 16 }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => setSelectedPos(i)}
+                className={`w-7 h-7 text-xs rounded font-mono border transition-colors ${
+                  selectedPos === i
+                    ? 'bg-indigo-500/30 border-indigo-500 text-indigo-300'
+                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500'
+                }`}
+              >
+                {i}
+              </button>
+            ))}
+          </div>
           <input
             type="range"
             min={0}
             max={15}
             value={selectedPos}
             onChange={e => setSelectedPos(Number(e.target.value))}
-            className="w-full accent-indigo-500"
+            className="w-full mt-2 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-indigo-500 [&::-moz-range-thumb]:border-0"
           />
           <div className="flex justify-between text-xs text-slate-600 mt-1">
             <span>0</span><span>7</span><span>15</span>

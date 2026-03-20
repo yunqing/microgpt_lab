@@ -11,60 +11,42 @@ function softmax(arr) {
 const TOKENS = 'abcdefghijklmnopqrstuvwxyz⊕'.split('');
 
 export default function LossViz() {
-  const [targetIdx, setTargetIdx] = useState(4); // 'e'
-  const [logitStrength, setLogitStrength] = useState(1.0);
+  // Fixed target: 'e' (index 4)
+  const targetIdx = 4;
 
-  // Fake logits: boost target slightly based on strength
-  const logits = TOKENS.map((_, i) => {
-    if (i === targetIdx) return logitStrength * 2;
-    return (Math.sin(i * 0.7 + 1.2) * logitStrength * 0.5);
-  });
+  // Initialize logits: target gets higher value, others get random lower values
+  const [logits, setLogits] = useState(() =>
+    TOKENS.map((_, i) => i === targetIdx ? 3.0 : Math.random() * 0.5 - 0.25)
+  );
+
   const probs = softmax(logits);
   const pTarget = probs[targetIdx];
   const loss = -Math.log(pTarget);
 
-  // Sort for display (top 8)
+  const adjustLogit = (idx, delta) => {
+    setLogits(prev => {
+      const newLogits = [...prev];
+      newLogits[idx] = Math.max(-5, Math.min(5, newLogits[idx] + delta));
+      return newLogits;
+    });
+  };
+
+  // Sort for display (top 10)
   const sorted = probs
-    .map((p, i) => ({ p, i, char: TOKENS[i] }))
+    .map((p, i) => ({ p, i, char: TOKENS[i], logit: logits[i] }))
     .sort((a, b) => b.p - a.p)
     .slice(0, 10);
 
   return (
     <div className="space-y-5">
-      {/* Controls */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-xs text-slate-500 mb-2 block">Target character:</label>
-          <div className="grid grid-cols-7 gap-1">
-            {'abcdefghijklmnopqrstuvwxyz⊕'.split('').slice(0, 14).map((c, i) => (
-              <button
-                key={c}
-                onClick={() => setTargetIdx(i)}
-                className={`h-7 text-xs font-mono rounded border transition-colors ${
-                  targetIdx === i
-                    ? 'bg-red-500/20 border-red-500 text-red-300'
-                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600'
-                }`}
-              >
-                {c}
-              </button>
-            ))}
+      {/* Target display */}
+      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
+        <p className="text-xs text-slate-500 mb-1">Target (ground truth):</p>
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 rounded-lg bg-red-500/20 border-2 border-red-500 flex items-center justify-center">
+            <span className="text-xl font-mono text-red-300 font-bold">{TOKENS[targetIdx]}</span>
           </div>
-        </div>
-        <div>
-          <label className="text-xs text-slate-500 mb-2 block">
-            Model confidence: <span className="text-cyan-300 font-mono">{logitStrength.toFixed(1)}×</span>
-          </label>
-          <input
-            type="range"
-            min="0.1"
-            max="4"
-            step="0.1"
-            value={logitStrength}
-            onChange={e => setLogitStrength(parseFloat(e.target.value))}
-            className="w-full accent-red-500"
-          />
-          <p className="text-xs text-slate-600 mt-1">Higher = stronger logits for target</p>
+          <p className="text-xs text-slate-400">The model should predict this character</p>
         </div>
       </div>
 
@@ -77,6 +59,7 @@ export default function LossViz() {
         }`}
         animate={{ scale: [1, 1.02, 1] }}
         transition={{ duration: 0.3 }}
+        key={loss}
       >
         <p className="text-xs text-slate-400 mb-1">Cross-Entropy Loss</p>
         <p className={`text-3xl font-mono font-bold ${
@@ -94,29 +77,55 @@ export default function LossViz() {
         </p>
       </motion.div>
 
-      {/* Probability bars */}
+      {/* Model output probabilities (adjustable) */}
       <div>
-        <p className="text-xs text-slate-500 mb-2">Top 10 token probabilities:</p>
+        <p className="text-xs text-slate-500 mb-2">Model output (adjust logits to see loss change):</p>
         <div className="space-y-1.5">
-          {sorted.map(({ p, i, char }) => (
+          {sorted.map(({ p, i, char, logit }) => (
             <div key={i} className="flex items-center gap-2">
               <div className={`w-6 text-center text-sm font-mono ${i === targetIdx ? 'text-red-300 font-bold' : 'text-slate-400'}`}>
                 {char}
+                {i === targetIdx && <span className="text-xs">★</span>}
               </div>
-              <div className="flex-1 h-5 bg-slate-800 rounded overflow-hidden">
+              <div className="flex-1 h-6 bg-slate-800 rounded overflow-hidden relative">
                 <motion.div
                   className={`h-full rounded ${i === targetIdx ? 'bg-gradient-to-r from-red-500 to-orange-400' : 'bg-slate-600/60'}`}
                   animate={{ width: `${p * 100}%` }}
                   transition={{ duration: 0.3 }}
                 />
               </div>
-              <div className={`w-14 text-right text-xs font-mono ${i === targetIdx ? 'text-red-300' : 'text-slate-500'}`}>
+              <div className={`w-16 text-right text-xs font-mono ${i === targetIdx ? 'text-red-300' : 'text-slate-500'}`}>
                 {(p * 100).toFixed(2)}%
+              </div>
+              <div className="flex gap-0.5">
+                <button
+                  onClick={() => adjustLogit(i, -0.5)}
+                  className="w-6 h-6 text-xs bg-slate-800 border border-slate-700 rounded text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors"
+                >
+                  −
+                </button>
+                <button
+                  onClick={() => adjustLogit(i, 0.5)}
+                  className="w-6 h-6 text-xs bg-slate-800 border border-slate-700 rounded text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors"
+                >
+                  +
+                </button>
               </div>
             </div>
           ))}
         </div>
+        <p className="text-xs text-slate-500 mt-3">
+          💡 Try increasing the target '{TOKENS[targetIdx]}' logit (lower loss) or increasing other logits (higher loss)
+        </p>
       </div>
+
+      {/* Reset button */}
+      <button
+        onClick={() => setLogits(TOKENS.map((_, i) => i === targetIdx ? 3.0 : Math.random() * 0.5 - 0.25))}
+        className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-400 text-sm hover:text-cyan-400 hover:border-cyan-500/50 transition-colors"
+      >
+        Reset to random logits
+      </button>
     </div>
   );
 }

@@ -1,6 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, RotateCcw } from 'lucide-react';
 
 // Minimal Value class in JS for visualization
 class Value {
@@ -51,39 +50,55 @@ class Value {
 }
 
 const PRESETS = [
-  { label: 'a×b + c', a: 2, b: 3, c: 1 },
-  { label: 'a×(b+c)', a: 4, b: 2, c: 3 },
-  { label: '(a+b)×c', a: 1, b: 2, c: 5 },
+  { label: 'a×b + c', expr: 'mul_add', a: 2, b: 3, c: 1 },
+  { label: 'a×(b+c)', expr: 'mul_paren', a: 4, b: 2, c: 3 },
+  { label: '(a+b)×c', expr: 'add_mul', a: 1, b: 2, c: 5 },
 ];
 
 export default function AutogradViz() {
   const [vals, setVals] = useState({ a: 2, b: 3, c: 1 });
+  const [expr, setExpr] = useState('mul_add');
   const [result, setResult] = useState(null);
-  const [ran, setRan] = useState(false);
 
   const run = useCallback(() => {
     const a = new Value(vals.a, [], '', 'a');
     const b = new Value(vals.b, [], '', 'b');
     const c = new Value(vals.c, [], '', 'c');
-    const ab = a.mul(b);
-    ab.label = 'a×b';
-    const out = ab.add(c);
+
+    let intermediate, out;
+
+    if (expr === 'mul_add') {
+      // a×b + c
+      intermediate = a.mul(b);
+      intermediate.label = 'a×b';
+      out = intermediate.add(c);
+    } else if (expr === 'mul_paren') {
+      // a×(b+c)
+      intermediate = b.add(c);
+      intermediate.label = 'b+c';
+      out = a.mul(intermediate);
+    } else {
+      // (a+b)×c
+      intermediate = a.add(b);
+      intermediate.label = 'a+b';
+      out = intermediate.mul(c);
+    }
+
     out.label = 'out';
     out.backward();
-    setResult({ a, b, c, ab, out });
-    setRan(true);
-  }, [vals]);
+    setResult({ a, b, c, intermediate, out });
+  }, [vals, expr]);
 
-  const reset = () => {
-    setResult(null);
-    setRan(false);
-  };
+  // Auto-run when values or expression changes
+  useEffect(() => {
+    run();
+  }, [run]);
 
   const nodes = result
     ? [
         { node: result.a, x: 60, y: 40, color: 'cyan' },
         { node: result.b, x: 60, y: 120, color: 'indigo' },
-        { node: result.ab, x: 200, y: 80, color: 'teal' },
+        { node: result.intermediate, x: 200, y: 80, color: 'teal' },
         { node: result.c, x: 60, y: 200, color: 'violet' },
         { node: result.out, x: 340, y: 140, color: 'emerald' },
       ]
@@ -101,7 +116,11 @@ export default function AutogradViz() {
     <div className="space-y-4">
       {/* Controls */}
       <div>
-        <p className="text-xs text-slate-500 mb-3">Expression: <span className="text-cyan-400 font-mono">out = a × b + c</span></p>
+        <p className="text-xs text-slate-500 mb-3">Expression: <span className="text-cyan-400 font-mono">
+          {expr === 'mul_add' && 'out = a × b + c'}
+          {expr === 'mul_paren' && 'out = a × (b + c)'}
+          {expr === 'add_mul' && 'out = (a + b) × c'}
+        </span></p>
         <div className="grid grid-cols-3 gap-3 mb-3">
           {['a', 'b', 'c'].map(k => (
             <div key={k}>
@@ -109,7 +128,7 @@ export default function AutogradViz() {
               <input
                 type="number"
                 value={vals[k]}
-                onChange={e => { setVals(v => ({ ...v, [k]: parseFloat(e.target.value) || 0 })); reset(); }}
+                onChange={e => setVals(v => ({ ...v, [k]: parseFloat(e.target.value) || 0 }))}
                 className="w-full bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-sm text-slate-100 font-mono text-center focus:outline-none focus:border-cyan-500"
               />
             </div>
@@ -119,27 +138,17 @@ export default function AutogradViz() {
           {PRESETS.map(p => (
             <button
               key={p.label}
-              onClick={() => { setVals({ a: p.a, b: p.b, c: p.c }); reset(); }}
-              className="px-2.5 py-1 text-xs bg-slate-800 border border-slate-700 rounded-lg text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors font-mono"
+              onClick={() => { setVals({ a: p.a, b: p.b, c: p.c }); setExpr(p.expr); }}
+              className={`px-2.5 py-1 text-xs bg-slate-800 border rounded-lg transition-colors font-mono ${
+                expr === p.expr
+                  ? 'border-cyan-500 text-cyan-400'
+                  : 'border-slate-700 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50'
+              }`}
             >
               {p.label}
             </button>
           ))}
         </div>
-      </div>
-
-      <div className="flex gap-2">
-        <button
-          onClick={run}
-          className="flex items-center gap-1.5 px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 rounded-lg text-cyan-300 text-sm hover:bg-cyan-500/30 transition-colors"
-        >
-          <Play size={12} /> Forward + Backward
-        </button>
-        {ran && (
-          <button onClick={reset} className="flex items-center gap-1.5 px-3 py-2 text-xs text-slate-400 border border-slate-700 rounded-lg hover:text-slate-300">
-            <RotateCcw size={12} /> Reset
-          </button>
-        )}
       </div>
 
       {/* Computation graph */}
@@ -153,7 +162,7 @@ export default function AutogradViz() {
             <line x1="85" y1="210" x2="315" y2="160" stroke="#475569" strokeWidth="1.5" />
 
             {/* Flow animations */}
-            {ran && [
+            {[
               { x1: 315, y1: 145, x2: 230, y2: 100 },
               { x1: 175, y1: 105, x2: 85, y2: 135 },
               { x1: 175, y1: 95, x2: 85, y2: 60 },
@@ -183,11 +192,9 @@ export default function AutogradViz() {
                     <div className={`text-sm font-mono font-bold ${c.text}`}>
                       {node.data.toFixed(2)}
                     </div>
-                    {ran && (
-                      <div className="text-xs font-mono text-orange-300">
-                        ∂={node.grad.toFixed(2)}
-                      </div>
-                    )}
+                    <div className="text-xs font-mono text-orange-300">
+                      ∂={node.grad.toFixed(2)}
+                    </div>
                   </motion.div>
                 </foreignObject>
               );
@@ -196,7 +203,7 @@ export default function AutogradViz() {
 
           {/* Table */}
           <div className="grid grid-cols-5 gap-1 text-center">
-            {[result.a, result.b, result.c, result.ab, result.out].map(n => (
+            {[result.a, result.b, result.c, result.intermediate, result.out].map(n => (
               <div key={n.id} className="bg-slate-800 rounded-lg p-2">
                 <div className="text-xs text-slate-500 font-mono">{n.label || n.op}</div>
                 <div className="text-sm font-mono text-cyan-300">{n.data.toFixed(1)}</div>

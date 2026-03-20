@@ -62,83 +62,74 @@ function ValueBar({ value, maxAbs, colorFill, animated = false, delay = 0 }) {
 }
 
 export default function QKVViz() {
-  const [selectedDim, setSelectedDim] = useState(null);
   const [selectedHead, setSelectedHead] = useState(null);
-  const [projected, setProjected] = useState(false);
+  const [showProjection, setShowProjection] = useState(false);
 
   // Use a fixed input vector for repeatability
   const x = useMemo(() => seededVec(N_EMBD, 77), []);
-  const q = useMemo(() => matvec(Wq, x), [x]);
-  const k = useMemo(() => matvec(Wk, x), [x]);
-  const v = useMemo(() => matvec(Wv, x), [x]);
+
+  // Full projections
+  const q_full = useMemo(() => matvec(Wq, x), [x]);
+  const k_full = useMemo(() => matvec(Wk, x), [x]);
+  const v_full = useMemo(() => matvec(Wv, x), [x]);
 
   const xMax = Math.max(...x.map(Math.abs));
-  const qMax = Math.max(...q.map(Math.abs));
-  const kMax = Math.max(...k.map(Math.abs));
-  const vMax = Math.max(...v.map(Math.abs));
 
-  // Attention score for selected head (q_h · k_h / sqrt(head_dim))
+  // Split into heads: each head gets HEAD_DIM dimensions
+  const heads = useMemo(() => {
+    return Array.from({ length: N_HEAD }, (_, h) => {
+      const start = h * HEAD_DIM;
+      const end = start + HEAD_DIM;
+      return {
+        q: q_full.slice(start, end),
+        k: k_full.slice(start, end),
+        v: v_full.slice(start, end),
+      };
+    });
+  }, [q_full, k_full, v_full]);
+
+  // Attention score for selected head
   const headScore = useMemo(() => {
     if (selectedHead === null) return null;
-    const hs = selectedHead * HEAD_DIM;
-    const qh = q.slice(hs, hs + HEAD_DIM);
-    const kh = k.slice(hs, hs + HEAD_DIM);
-    const dot = qh.reduce((s, qi, i) => s + qi * kh[i], 0);
+    const { q, k } = heads[selectedHead];
+    const dot = q.reduce((s, qi, i) => s + qi * k[i], 0);
     return dot / Math.sqrt(HEAD_DIM);
-  }, [selectedHead, q, k]);
-
-  const dimIsInHead = (dim) => selectedHead !== null
-    ? Math.floor(dim / HEAD_DIM) === selectedHead
-    : false;
-
-  const VECTORS = [
-    { label: 'Q', vec: q, max: qMax, ci: 0, key: 'q' },
-    { label: 'K', vec: k, max: kMax, ci: 1, key: 'k' },
-    { label: 'V', vec: v, max: vMax, ci: 2, key: 'v' },
-  ];
+  }, [selectedHead, heads]);
 
   return (
     <div className="space-y-4 select-none">
-      {/* Instruction hint */}
-      <p className="text-xs text-slate-500">
-        Click a <span className="text-slate-300">dimension</span> in x to trace it through projections.
-        Click a <span className="text-slate-300">head</span> card to see its dot-product score.
-      </p>
+      {/* Instruction */}
+      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
+        <p className="text-xs text-slate-400 mb-1">
+          <span className="text-cyan-400 font-semibold">Multi-Head Attention</span> splits the full projection into {N_HEAD} parallel heads:
+        </p>
+        <p className="text-xs text-slate-500 font-mono">
+          Q/K/V [16] → split into {N_HEAD} heads × [4] dimensions each
+        </p>
+      </div>
 
-      {/* ── Input vector x ── */}
+      {/* Input vector x */}
       <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <p className="text-xs text-slate-400 font-mono">
-            x<span className="text-slate-600">[16]</span> — after RMSNorm
-          </p>
-          {selectedDim !== null && (
-            <span className="text-xs text-slate-500">
-              x[<span className="text-yellow-300 font-mono">{selectedDim}</span>] =&nbsp;
-              <span className="text-yellow-300 font-mono">{x[selectedDim].toFixed(3)}</span>
-            </span>
-          )}
-        </div>
+        <p className="text-xs text-slate-400 font-mono mb-1.5">
+          x<span className="text-slate-600">[16]</span> — input after RMSNorm
+        </p>
         <div className="flex gap-0.5 h-10">
           {x.map((v, i) => {
-            const isSelected = selectedDim === i;
-            const inHead = dimIsInHead(i);
             const h = Math.floor(i / HEAD_DIM);
+            const hc = HEAD_COLORS[h];
             return (
-              <motion.button
+              <motion.div
                 key={i}
-                onClick={() => setSelectedDim(isSelected ? null : i)}
-                whileHover={{ scaleY: 1.15 }}
-                className={`relative flex-1 h-full rounded-sm transition-all cursor-pointer outline-none
-                  ${isSelected ? `ring-2 ring-yellow-400 z-10` : ''}
-                  ${inHead ? `ring-1 ${HEAD_COLORS[h].ring} opacity-100` : selectedDim !== null ? 'opacity-40' : 'opacity-100'}
-                `}
+                className={`relative flex-1 h-full rounded-sm ${
+                  selectedHead === h ? `ring-1 ${hc.ring}` : ''
+                }`}
               >
                 <ValueBar value={v} maxAbs={xMax} colorFill="rgba(148,163,184," animated={false} />
-              </motion.button>
+              </motion.div>
             );
           })}
         </div>
-        {/* Head labels */}
+        {/* Head regions */}
         <div className="flex mt-1">
           {Array.from({ length: N_HEAD }, (_, h) => (
             <div key={h} className={`flex-1 text-center text-xs ${HEAD_COLORS[h].text} opacity-50`}>
@@ -148,156 +139,138 @@ export default function QKVViz() {
         </div>
       </div>
 
-      {/* ── Project button ── */}
+      {/* Project button */}
       <div className="flex items-center gap-2">
         <motion.button
-          onClick={() => setProjected(p => !p)}
+          onClick={() => setShowProjection(p => !p)}
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border transition-colors font-semibold ${
-            projected
+            showProjection
               ? 'bg-cyan-500/20 border-cyan-500/60 text-cyan-300'
               : 'bg-slate-700 border-slate-600 text-slate-300 hover:border-slate-500'
           }`}
         >
           <Zap size={11} />
-          {projected ? 'Hide projections' : 'Project x → Q, K, V'}
+          {showProjection ? 'Hide projections' : 'Project: x → Q, K, V'}
         </motion.button>
         <span className="text-xs text-slate-600">W_q, W_k, W_v each [16×16]</span>
       </div>
 
-      {/* ── Q / K / V bars ── */}
+      {/* Full projections (before splitting) */}
       <AnimatePresence>
-        {projected && (
+        {showProjection && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
+            className="space-y-3 overflow-hidden"
           >
-            <div className="space-y-3">
-              {VECTORS.map(({ label, vec, max, ci, key }) => {
-                const c = HEAD_COLORS[ci];
-                return (
-                  <div key={key}>
-                    <p className="text-xs mb-1.5">
-                      <span className={`font-mono font-bold ${c.text}`}>{label}</span>
-                      <span className="text-slate-600"> = W_{label.toLowerCase()} · x — shape [16]</span>
-                    </p>
-                    <div className="flex gap-0.5 h-10">
-                      {vec.map((val, i) => {
-                        const h = Math.floor(i / HEAD_DIM);
-                        const hc = HEAD_COLORS[h];
-                        const isTracedDim = selectedDim !== null && i === selectedDim;
-                        const inSelectedHead = dimIsInHead(i);
-                        return (
-                          <motion.div
-                            key={i}
-                            className={`relative flex-1 h-full rounded-sm
-                              ${isTracedDim ? 'ring-2 ring-yellow-400 z-10' : ''}
-                              ${inSelectedHead ? `ring-1 ${hc.ring}` : selectedDim !== null && !isTracedDim ? 'opacity-30' : ''}
-                            `}
-                          >
-                            <ValueBar
-                              value={val}
-                              maxAbs={max}
-                              colorFill={hc.fill}
-                              animated={true}
-                              delay={i * 0.018}
-                            />
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                    {/* Head dividers */}
-                    <div className="flex mt-0.5">
-                      {Array.from({ length: N_HEAD }, (_, h) => (
-                        <div key={h} className={`flex-1 text-center text-xs ${HEAD_COLORS[h].text} opacity-40`}>
-                          h{h + 1}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* ── Dim trace panel ── */}
-            <AnimatePresence>
-              {selectedDim !== null && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                  className="mt-3 bg-yellow-400/10 border border-yellow-400/30 rounded-xl p-3"
-                >
-                  <p className="text-xs font-semibold text-yellow-300 mb-2">
-                    Tracing dim {selectedDim} (head {Math.floor(selectedDim / HEAD_DIM) + 1}, slot {selectedDim % HEAD_DIM})
+            {[
+              { label: 'Q', vec: q_full, color: 'cyan' },
+              { label: 'K', vec: k_full, color: 'indigo' },
+              { label: 'V', vec: v_full, color: 'violet' },
+            ].map(({ label, vec, color }) => {
+              const max = Math.max(...vec.map(Math.abs));
+              return (
+                <div key={label}>
+                  <p className="text-xs mb-1.5">
+                    <span className={`font-mono font-bold text-${color}-300`}>{label}</span>
+                    <span className="text-slate-600"> = W_{label.toLowerCase()} · x [16]</span>
+                    <span className="text-slate-500 ml-2">→ will be split into {N_HEAD} heads</span>
                   </p>
-                  <div className="grid grid-cols-4 gap-2 text-xs font-mono text-center">
-                    <div>
-                      <p className="text-slate-500 mb-1">x[{selectedDim}]</p>
-                      <p className="text-yellow-300">{x[selectedDim].toFixed(3)}</p>
-                    </div>
-                    <div>
-                      <p className={`${HEAD_COLORS[0].text} mb-1`}>q[{selectedDim}]</p>
-                      <p className="text-cyan-300">{q[selectedDim].toFixed(3)}</p>
-                    </div>
-                    <div>
-                      <p className={`${HEAD_COLORS[1].text} mb-1`}>k[{selectedDim}]</p>
-                      <p className="text-indigo-300">{k[selectedDim].toFixed(3)}</p>
-                    </div>
-                    <div>
-                      <p className={`${HEAD_COLORS[2].text} mb-1`}>v[{selectedDim}]</p>
-                      <p className="text-violet-300">{v[selectedDim].toFixed(3)}</p>
-                    </div>
+                  <div className="flex gap-0.5 h-10">
+                    {vec.map((val, i) => {
+                      const h = Math.floor(i / HEAD_DIM);
+                      const hc = HEAD_COLORS[h];
+                      return (
+                        <motion.div
+                          key={i}
+                          className={`relative flex-1 h-full rounded-sm ${
+                            selectedHead === h ? `ring-1 ${hc.ring}` : ''
+                          }`}
+                        >
+                          <ValueBar
+                            value={val}
+                            maxAbs={max}
+                            colorFill={hc.fill}
+                            animated={true}
+                            delay={i * 0.018}
+                          />
+                        </motion.div>
+                      );
+                    })}
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  {/* Head boundaries */}
+                  <div className="flex mt-0.5">
+                    {Array.from({ length: N_HEAD }, (_, h) => (
+                      <div key={h} className={`flex-1 text-center text-xs ${HEAD_COLORS[h].text} opacity-40`}>
+                        h{h + 1}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Head cards ── */}
+      {/* Multi-head cards */}
       <div className="border-t border-slate-700 pt-3">
         <p className="text-xs text-slate-500 mb-2">
-          Click a head to see its Q·K attention score:
+          Each head operates on its {HEAD_DIM}-dimensional slice independently:
         </p>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           {Array.from({ length: N_HEAD }, (_, h) => {
+            const { q } = heads[h];
             const c = HEAD_COLORS[h];
-            const hs = h * HEAD_DIM;
-            const qh = q.slice(hs, hs + HEAD_DIM);
             const isActive = selectedHead === h;
+            const qMax = Math.max(...q.map(Math.abs));
+
             return (
               <motion.button
                 key={h}
                 onClick={() => setSelectedHead(isActive ? null : h)}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-                className={`rounded-xl border p-2 text-left transition-all ${
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`rounded-xl border p-3 text-left transition-all ${
                   isActive
-                    ? `${c.badge} ${c.border}/60 ring-1 ${c.ring}/40`
+                    ? `${c.badge} ${c.border}/60 ring-2 ${c.ring}/40`
                     : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'
                 }`}
               >
-                <p className={`text-xs font-bold ${c.text} mb-1`}>Head {h + 1}</p>
-                <p className="text-xs text-slate-500 font-mono">dim={HEAD_DIM}</p>
-                <div className="flex gap-0.5 mt-1.5 h-5">
-                  {qh.map((val, i) => (
-                    <div key={i} className="flex-1 h-full relative">
-                      <motion.div
-                        className="absolute bottom-0 left-0 right-0 rounded-sm"
-                        style={{ background: `${c.fill}0.6)` }}
-                        animate={{ height: `${Math.abs(val) / (Math.max(...qh.map(Math.abs)) + 0.001) * 100}%` }}
-                        transition={{ duration: 0.3, delay: i * 0.05 }}
-                      />
+                <div className="flex items-center justify-between mb-2">
+                  <p className={`text-sm font-bold ${c.text}`}>Head {h + 1}</p>
+                  <span className="text-xs text-slate-500 font-mono">dim={HEAD_DIM}</span>
+                </div>
+
+                {/* Q preview */}
+                <div className="mb-2">
+                  <p className="text-xs text-slate-500 mb-1">Q_h{h + 1}[{HEAD_DIM}]</p>
+                  <div className="flex gap-0.5 h-5">
+                    {q.map((val, i) => (
+                      <div key={i} className="flex-1 h-full relative bg-slate-900 rounded-sm overflow-hidden">
+                        <motion.div
+                          className="absolute bottom-0 left-0 right-0"
+                          style={{ background: `${c.fill}0.7)` }}
+                          animate={{ height: `${Math.abs(val) / (qMax + 0.001) * 100}%` }}
+                          transition={{ duration: 0.3, delay: i * 0.05 }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Values preview */}
+                <div className="grid grid-cols-4 gap-1 text-xs font-mono">
+                  {q.map((val, i) => (
+                    <div key={i} className="text-center">
+                      <span className="text-slate-600">[{i}]</span>
+                      <div className={`${c.text} text-xs`}>{val.toFixed(2)}</div>
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-slate-600 mt-1 font-mono">Q</p>
               </motion.button>
             );
           })}
@@ -311,18 +284,18 @@ export default function QKVViz() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.25 }}
               className="overflow-hidden"
             >
               <div className={`mt-3 rounded-xl border p-4 ${HEAD_COLORS[selectedHead].badge} ${HEAD_COLORS[selectedHead].border}/30`}>
-                <p className={`text-xs font-bold ${HEAD_COLORS[selectedHead].text} mb-3`}>
-                  Head {selectedHead + 1} — Q·K dot-product
+                <p className={`text-sm font-bold ${HEAD_COLORS[selectedHead].text} mb-3`}>
+                  Head {selectedHead + 1} — Attention Score Calculation
                 </p>
+
                 <div className="grid grid-cols-3 gap-3 text-xs font-mono">
                   {/* Q_h */}
                   <div>
-                    <p className={`${HEAD_COLORS[selectedHead].text} mb-2`}>Q_h[{HEAD_DIM}]</p>
-                    {q.slice(selectedHead * HEAD_DIM, selectedHead * HEAD_DIM + HEAD_DIM).map((val, i) => (
+                    <p className={`${HEAD_COLORS[selectedHead].text} mb-2`}>Q_h{selectedHead + 1}[{HEAD_DIM}]</p>
+                    {heads[selectedHead].q.map((val, i) => (
                       <div key={i} className="flex items-center gap-1 mb-1">
                         <span className="text-slate-500 w-4">[{i}]</span>
                         <div className="flex-1 h-3 bg-slate-800 rounded overflow-hidden">
@@ -335,10 +308,11 @@ export default function QKVViz() {
                       </div>
                     ))}
                   </div>
+
                   {/* K_h */}
                   <div>
-                    <p className="text-slate-400 mb-2">K_h[{HEAD_DIM}]</p>
-                    {k.slice(selectedHead * HEAD_DIM, selectedHead * HEAD_DIM + HEAD_DIM).map((val, i) => (
+                    <p className="text-slate-400 mb-2">K_h{selectedHead + 1}[{HEAD_DIM}]</p>
+                    {heads[selectedHead].k.map((val, i) => (
                       <div key={i} className="flex items-center gap-1 mb-1">
                         <span className="text-slate-500 w-4">[{i}]</span>
                         <div className="flex-1 h-3 bg-slate-800 rounded overflow-hidden">
@@ -351,11 +325,12 @@ export default function QKVViz() {
                       </div>
                     ))}
                   </div>
-                  {/* Score breakdown */}
+
+                  {/* Q·K per dimension */}
                   <div>
-                    <p className="text-slate-400 mb-2">Q×K per dim</p>
-                    {q.slice(selectedHead * HEAD_DIM, selectedHead * HEAD_DIM + HEAD_DIM).map((qv, i) => {
-                      const kv = k[selectedHead * HEAD_DIM + i];
+                    <p className="text-slate-400 mb-2">Q·K per dim</p>
+                    {heads[selectedHead].q.map((qv, i) => {
+                      const kv = heads[selectedHead].k[i];
                       const prod = qv * kv;
                       return (
                         <div key={i} className="flex items-center gap-1 mb-1">
@@ -384,8 +359,27 @@ export default function QKVViz() {
                           {headScore?.toFixed(4)}
                         </motion.span>
                       </div>
-                      <p className="text-slate-600 text-xs mt-1">→ this becomes the softmax input</p>
+                      <p className="text-slate-600 text-xs mt-1">→ attention score (before softmax)</p>
                     </div>
+                  </div>
+                </div>
+
+                {/* V_h display */}
+                <div className="mt-3 pt-3 border-t border-slate-700/50">
+                  <p className="text-slate-400 mb-2 text-xs">V_h{selectedHead + 1}[{HEAD_DIM}] — values to aggregate:</p>
+                  <div className="flex gap-2">
+                    {heads[selectedHead].v.map((val, i) => (
+                      <div key={i} className="flex-1 text-center">
+                        <div className="h-12 bg-slate-900 rounded mb-1 overflow-hidden relative">
+                          <motion.div
+                            className="absolute bottom-0 left-0 right-0 bg-violet-500/60"
+                            animate={{ height: `${Math.abs(val) / 0.5 * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-slate-500">[{i}]</span>
+                        <div className="text-xs text-violet-300">{val.toFixed(2)}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
