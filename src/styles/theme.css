@@ -1,0 +1,123 @@
+/* Theme CSS Variables */
+
+/* Smooth theme transitions */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Disable transitions for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
+
+/* Dark Theme (Default) */
+:root, [data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #020617;
+  --bg-panel: rgba(15, 23, 42, 0.6);
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --text-muted: #64748b;
+
+  --border-primary: #334155;
+  --border-secondary: #475569;
+
+  --accent-cyan: #22d3ee;
+  --accent-indigo: #818cf8;
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --bg-panel: rgba(255, 255, 255, 0.8);
+
+  --text-primary: #000000;   /* Pure black for maximum contrast */
+  --text-secondary: #1f2937; /* Very dark gray-800 */
+  --text-tertiary: #374151;  /* Dark gray-700 */
+  --text-muted: #4b5563;     /* Dark gray-600 - still readable */
+
+  --border-primary: #d1d5db;
+  --border-secondary: #9ca3af;
+
+  --accent-cyan: #0891b2;
+  --accent-indigo: #6366f1;
+}
+
+
+/* Apply theme colors */
+.theme-bg-primary {
+  background-color: var(--bg-primary);
+}
+
+.theme-bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.theme-text-primary {
+  color: var(--text-primary);
+}
+
+.theme-text-secondary {
+  color: var(--text-secondary);
+}
+
+.theme-border-primary {
+  border-color: var(--border-primary);
+}
+
+/* Override hardcoded light gray text in light theme */
+[data-theme="light"] .text-slate-300,
+[data-theme="light"] .text-slate-400,
+[data-theme="light"] .text-slate-500,
+[data-theme="light"] .text-slate-600,
+[data-theme="light"] .text-gray-300,
+[data-theme="light"] .text-gray-400,
+[data-theme="light"] .text-gray-500,
+[data-theme="light"] .text-gray-600 {
+  color: #000000 !important; /* Pure black for maximum readability */
+}
+
+/* Override hardcoded backgrounds in light theme - make them white/very light */
+[data-theme="light"] .bg-slate-700,
+[data-theme="light"] .bg-slate-800,
+[data-theme="light"] .bg-slate-900,
+[data-theme="light"] .bg-slate-950 {
+  background-color: #ffffff !important; /* Pure white */
+}
+
+[data-theme="light"] .bg-slate-800\/60,
+[data-theme="light"] .bg-slate-800\/50,
+[data-theme="light"] .bg-slate-800\/30 {
+  background-color: #f9fafb !important; /* Very light gray-50 */
+}
+
+/* Override hardcoded borders in light theme */
+[data-theme="light"] .border-slate-600,
+[data-theme="light"] .border-slate-700,
+[data-theme="light"] .border-slate-800 {
+  border-color: #e5e7eb !important; /* Light gray-200 */
+}
+
+/* Fix code input boxes - make text black and background white */
+[data-theme="light"] textarea,
+[data-theme="light"] input[type="text"],
+[data-theme="light"] input[type="number"],
+[data-theme="light"] input {
+  color: #000000 !important; /* Black text */
+  background-color: #ffffff !important; /* White background */
+  border-color: #d1d5db !important; /* Gray-300 border */
+}
+
+/* Fix code blocks */
+[data-theme="light"] pre,
+[data-theme="light"] code {
+  color: #000000 !important; /* Black text */
+  background-color: #f3f4f6 !important; /* Light gray-100 background */
+}
