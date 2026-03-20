@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Play, RotateCcw } from 'lucide-react';
 
 const CHARS = 'abcdefghijklmnopqrstuvwxyz'.split('');
@@ -101,36 +101,100 @@ export default function InferenceViz() {
         />
       </div>
 
-      {/* Output display */}
-      <div className="bg-slate-800 rounded-xl border border-slate-700 p-4 min-h-20 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-xs text-slate-500 mb-2">Generated name:</div>
-          <div className="flex items-center gap-1 justify-center flex-wrap">
-            <span className="text-sm font-mono text-purple-400 opacity-50">⊕</span>
-            <AnimatePresence mode="popLayout">
-              {sample.map((ch, i) => (
+      {/* Input/Output display */}
+      <div className="bg-slate-800 rounded-xl border border-slate-700 p-4">
+        <div className="grid grid-cols-2 gap-4">
+          {/* Input (context) */}
+          <div>
+            <div className="text-xs text-slate-500 mb-2">Decoder Input (context):</div>
+            <div className="bg-slate-900 rounded-lg p-3 min-h-16 flex items-center">
+              <div className="flex items-center gap-1 flex-wrap">
+                <span className="text-sm font-mono text-purple-400">⊕</span>
+                {sample.map((ch, i) => (
+                  <span
+                    key={i}
+                    className="text-lg font-mono text-slate-300"
+                  >
+                    {ch}
+                  </span>
+                ))}
+                {!done && sample.length > 0 && (
+                  <motion.span
+                    animate={{ opacity: [0.3, 1, 0.3] }}
+                    transition={{ duration: 0.8, repeat: Infinity }}
+                    className="text-lg font-mono text-cyan-400"
+                  >
+                    _
+                  </motion.span>
+                )}
+              </div>
+            </div>
+            <p className="text-xs text-slate-600 mt-1">
+              {sample.length === 0 ? 'Start with BOS token' : `${sample.length} tokens fed to model`}
+            </p>
+          </div>
+
+          {/* Output (next token) */}
+          <div>
+            <div className="text-xs text-slate-500 mb-2">Next Token Prediction:</div>
+            <div className="bg-slate-900 rounded-lg p-3 min-h-16 flex items-center justify-center">
+              {sample.length > 0 && !done && (
                 <motion.span
-                  key={`${i}-${ch}`}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="text-2xl font-mono font-bold text-cyan-300"
+                  key={`${sample.length}-${sample[sample.length - 1]}`}
+                  initial={{ scale: 0, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  className="text-3xl font-mono font-bold text-cyan-300"
                 >
-                  {ch}
+                  {sample[sample.length - 1]}
                 </motion.span>
-              ))}
-            </AnimatePresence>
-            {generating && !done && (
-              <motion.span
-                animate={{ opacity: [1, 0] }}
-                transition={{ repeat: Infinity, duration: 0.6 }}
-                className="text-2xl text-slate-400 font-mono"
-              >_</motion.span>
+              )}
+              {generating && !done && sample.length === 0 && (
+                <span className="text-sm text-slate-600">Generating...</span>
+              )}
+              {done && (
+                <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-3xl font-mono text-purple-400">⊕</motion.span>
+              )}
+            </div>
+            <p className="text-xs text-slate-600 mt-1">
+              {done ? 'Model output BOS (end)' : sample.length > 0 ? 'Just generated' : 'Waiting...'}
+            </p>
+          </div>
+        </div>
+
+        {/* Autoregressive flow */}
+        <div className="mt-3 pt-3 border-t border-slate-700">
+          <p className="text-xs text-slate-500 mb-2">Autoregressive generation flow:</p>
+          <div className="flex items-center gap-2 text-xs flex-wrap">
+            <div className="bg-slate-900 rounded px-2 py-1 font-mono text-purple-400">⊕</div>
+            <span className="text-slate-600">→</span>
+            {sample.slice(0, 3).map((ch, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="bg-slate-900 rounded px-2 py-1 font-mono text-cyan-300">{ch}</div>
+                <span className="text-slate-600">→</span>
+              </div>
+            ))}
+            {sample.length > 3 && (
+              <>
+                <span className="text-slate-600">...</span>
+                <span className="text-slate-600">→</span>
+              </>
+            )}
+            {!done && generating && (
+              <motion.div
+                animate={{ opacity: [0.3, 1, 0.3] }}
+                transition={{ duration: 0.8, repeat: Infinity }}
+                className="bg-cyan-500/20 border border-cyan-500/50 rounded px-2 py-1 text-cyan-400"
+              >
+                ?
+              </motion.div>
             )}
             {done && (
-              <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-sm font-mono text-purple-400 opacity-50">⊕</motion.span>
+              <div className="bg-slate-900 rounded px-2 py-1 font-mono text-purple-400">⊕</div>
             )}
           </div>
-          {done && <p className="text-xs text-emerald-400 mt-2">✓ BOS token predicted — name complete!</p>}
+          <p className="text-xs text-slate-600 mt-2">
+            Each output token is fed back as input for next prediction
+          </p>
         </div>
       </div>
 

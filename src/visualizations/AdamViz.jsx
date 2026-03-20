@@ -62,6 +62,16 @@ export default function AdamViz() {
 
   return (
     <div className="space-y-4">
+      {/* Info */}
+      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
+        <p className="text-xs text-slate-400 mb-1">
+          <span className="text-yellow-400 font-semibold">Adam Optimizer:</span> Adaptive learning with momentum
+        </p>
+        <p className="text-xs text-slate-500 font-mono">
+          m (1st moment) tracks gradient direction, v (2nd moment) tracks magnitude
+        </p>
+      </div>
+
       {/* Controls */}
       <div className="flex gap-2 items-center">
         <button
@@ -78,18 +88,19 @@ export default function AdamViz() {
       </div>
 
       {/* Current values */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {[
-          { label: 'gradient (g)', value: cur.grad?.toFixed(4), color: 'text-slate-300' },
-          { label: '1st moment (m)', value: cur.m?.toFixed(4), color: 'text-cyan-300' },
-          { label: '2nd moment (v)', value: cur.v?.toFixed(6), color: 'text-indigo-300' },
-          { label: 'eff. lr = lr / √v̂', value: cur.v_hat != null ? (cur.lr_t / (Math.sqrt(cur.v_hat) + EPS)).toFixed(5) : '—', color: 'text-orange-300' },
-          { label: 'param update', value: cur.param?.toFixed(5), color: 'text-teal-300' },
-          { label: 'lr_t (decayed)', value: cur.lr_t?.toFixed(5), color: 'text-yellow-300' },
-        ].map(({ label, value, color }) => (
+          { label: 'Gradient (g_t)', desc: 'Current gradient', value: cur.grad?.toFixed(4), color: 'text-slate-300' },
+          { label: '1st moment (m_t)', desc: 'EMA of gradients', value: cur.m?.toFixed(4), color: 'text-cyan-300' },
+          { label: '2nd moment (v_t)', desc: 'EMA of squared grads', value: cur.v?.toFixed(6), color: 'text-indigo-300' },
+          { label: 'Effective LR', desc: 'Adaptive per-param', value: cur.v_hat != null ? (cur.lr_t / (Math.sqrt(cur.v_hat) + EPS)).toFixed(5) : '—', color: 'text-orange-300' },
+          { label: 'Parameter (θ)', desc: 'Being optimized', value: cur.param?.toFixed(5), color: 'text-teal-300' },
+          { label: 'Base LR', desc: 'With decay', value: cur.lr_t?.toFixed(5), color: 'text-yellow-300' },
+        ].map(({ label, desc, value, color }) => (
           <div key={label} className="bg-slate-800/60 rounded-lg p-2 border border-slate-700">
             <p className="text-xs text-slate-500">{label}</p>
             <motion.p className={`text-sm font-mono font-bold ${color}`} key={value}>{value ?? '—'}</motion.p>
+            <p className="text-xs text-slate-600 mt-0.5">{desc}</p>
           </div>
         ))}
       </div>

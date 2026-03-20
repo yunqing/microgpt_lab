@@ -155,15 +155,69 @@ export default function AutogradViz() {
       {result && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
           <svg width="100%" height="240" viewBox="0 0 420 240" className="overflow-visible">
-            {/* Edges */}
-            <line x1="85" y1="60" x2="175" y2="95" stroke="#475569" strokeWidth="1.5" />
-            <line x1="85" y1="135" x2="175" y2="105" stroke="#475569" strokeWidth="1.5" />
-            <line x1="230" y1="100" x2="315" y2="145" stroke="#475569" strokeWidth="1.5" />
-            <line x1="85" y1="210" x2="315" y2="160" stroke="#475569" strokeWidth="1.5" />
+            {/* Edges - different for each expression */}
+            {expr === 'mul_add' && (
+              <>
+                {/* a×b + c: a→(a×b), b→(a×b), (a×b)→out, c→out */}
+                <line x1="85" y1="60" x2="175" y2="95" stroke="#475569" strokeWidth="1.5" />
+                <line x1="85" y1="135" x2="175" y2="105" stroke="#475569" strokeWidth="1.5" />
+                <line x1="230" y1="100" x2="315" y2="145" stroke="#475569" strokeWidth="1.5" />
+                <line x1="85" y1="210" x2="315" y2="160" stroke="#475569" strokeWidth="1.5" />
+              </>
+            )}
+            {expr === 'mul_paren' && (
+              <>
+                {/* a×(b+c): b→(b+c), c→(b+c), a→out, (b+c)→out */}
+                <line x1="85" y1="135" x2="175" y2="95" stroke="#475569" strokeWidth="1.5" />
+                <line x1="85" y1="210" x2="175" y2="105" stroke="#475569" strokeWidth="1.5" />
+                <line x1="85" y1="60" x2="315" y2="135" stroke="#475569" strokeWidth="1.5" />
+                <line x1="230" y1="100" x2="315" y2="150" stroke="#475569" strokeWidth="1.5" />
+              </>
+            )}
+            {expr === 'add_mul' && (
+              <>
+                {/* (a+b)×c: a→(a+b), b→(a+b), (a+b)→out, c→out */}
+                <line x1="85" y1="60" x2="175" y2="95" stroke="#475569" strokeWidth="1.5" />
+                <line x1="85" y1="135" x2="175" y2="105" stroke="#475569" strokeWidth="1.5" />
+                <line x1="230" y1="100" x2="315" y2="145" stroke="#475569" strokeWidth="1.5" />
+                <line x1="85" y1="210" x2="315" y2="160" stroke="#475569" strokeWidth="1.5" />
+              </>
+            )}
 
-            {/* Flow animations */}
-            {[
+            {/* Flow animations - different for each expression */}
+            {expr === 'mul_add' && [
               { x1: 315, y1: 145, x2: 230, y2: 100 },
+              { x1: 315, y1: 160, x2: 85, y2: 210 },
+              { x1: 175, y1: 105, x2: 85, y2: 135 },
+              { x1: 175, y1: 95, x2: 85, y2: 60 },
+            ].map((line, i) => (
+              <motion.circle
+                key={i}
+                r={3}
+                fill="#f97316"
+                initial={{ cx: line.x1, cy: line.y1, opacity: 0 }}
+                animate={{ cx: line.x2, cy: line.y2, opacity: [0, 1, 0] }}
+                transition={{ duration: 0.8, delay: i * 0.3, repeat: Infinity, repeatDelay: 1.5 }}
+              />
+            ))}
+            {expr === 'mul_paren' && [
+              { x1: 315, y1: 150, x2: 230, y2: 100 },
+              { x1: 315, y1: 135, x2: 85, y2: 60 },
+              { x1: 175, y1: 105, x2: 85, y2: 210 },
+              { x1: 175, y1: 95, x2: 85, y2: 135 },
+            ].map((line, i) => (
+              <motion.circle
+                key={i}
+                r={3}
+                fill="#f97316"
+                initial={{ cx: line.x1, cy: line.y1, opacity: 0 }}
+                animate={{ cx: line.x2, cy: line.y2, opacity: [0, 1, 0] }}
+                transition={{ duration: 0.8, delay: i * 0.3, repeat: Infinity, repeatDelay: 1.5 }}
+              />
+            ))}
+            {expr === 'add_mul' && [
+              { x1: 315, y1: 145, x2: 230, y2: 100 },
+              { x1: 315, y1: 160, x2: 85, y2: 210 },
               { x1: 175, y1: 105, x2: 85, y2: 135 },
               { x1: 175, y1: 95, x2: 85, y2: 60 },
             ].map((line, i) => (
