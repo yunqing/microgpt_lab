@@ -1,23 +1,29 @@
 import { motion } from 'framer-motion';
-import { Cpu, Award, Menu, Star } from 'lucide-react';
+import { Cpu, Award, Menu, Star, Info, Palette, Zap, Globe } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
-export default function Header({ completedLevels, earnedBadges, totalParams, paramProgress, onMenuClick, currentLevel }) {
+export default function Header({ completedLevels, earnedBadges, totalParams, paramProgress, onMenuClick, currentLevel, onAboutClick, onThemeClick, onLanguageClick, onTrainClick }) {
+  const { colors } = useTheme();
+  const { t, languageInfo } = useLanguage();
+
   return (
-    <header className="flex items-center justify-between px-3 sm:px-6 py-3 bg-slate-900 border-b border-slate-700 z-10">
+    <header className={`flex items-center justify-between px-3 sm:px-6 py-3 ${colors.bg.primary} ${colors.border.primary} border-b z-10`}>
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <button
           onClick={onMenuClick}
-          className="lg:hidden p-1.5 hover:bg-slate-800 rounded-lg transition-colors flex-shrink-0"
+          className="lg:hidden p-2 hover:bg-slate-800 rounded-lg transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+          aria-label="Open navigation menu"
         >
-          <Menu size={18} className="text-slate-400" />
+          <Menu size={20} className="text-slate-400" />
         </button>
         <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
           <Cpu size={14} className="text-white sm:w-4 sm:h-4" />
         </div>
         <div className="min-w-0">
-          <h1 className="text-xs sm:text-sm font-bold gradient-text truncate">MicroGPT Lab</h1>
+          <h1 className="text-xs sm:text-sm font-bold gradient-text truncate">{t('header.title')}</h1>
           <p className="text-xs text-slate-500 hidden sm:block">
-            Learn{' '}
+            {t('header.subtitle').split('microgpt')[0]}
             <a
               href="https://gist.github.com/karpathy/8627fe009c40f57531cb18360106ce95"
               target="_blank"
@@ -26,7 +32,7 @@ export default function Header({ completedLevels, earnedBadges, totalParams, par
             >
               microgpt
             </a>
-            {' '}interactively
+            {t('header.subtitle').split('microgpt')[1]}
           </p>
           <p className="text-xs text-slate-500 sm:hidden truncate">Lv.{currentLevel?.id}</p>
         </div>
@@ -35,7 +41,7 @@ export default function Header({ completedLevels, earnedBadges, totalParams, par
       {/* Parameter Progress */}
       <div className="hidden md:flex flex-col items-center gap-1 flex-1 mx-8">
         <div className="flex items-center gap-2 w-full max-w-xs">
-          <span className="text-xs text-slate-400 w-24 text-right">{paramProgress.toLocaleString()} params</span>
+          <span className="text-xs text-slate-400 w-24 text-right">{paramProgress.toLocaleString()} {t('header.params')}</span>
           <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-gradient-to-r from-cyan-500 to-indigo-500 rounded-full"
@@ -46,20 +52,61 @@ export default function Header({ completedLevels, earnedBadges, totalParams, par
           </div>
           <span className="text-xs text-slate-500">7,440</span>
         </div>
-        <p className="text-xs text-slate-600">Parameter Counter</p>
+        <p className="text-xs text-slate-600">{t('header.params')} Counter</p>
       </div>
 
       {/* Badges & Progress */}
       <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+        {/* Train Button */}
+        <button
+          onClick={onTrainClick}
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-500/30 rounded-lg transition-all group focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+          aria-label="Try Training"
+          title="Experience Training"
+        >
+          <Zap size={14} className="text-purple-400 group-hover:text-purple-300" />
+          <span className="text-xs text-purple-300 font-medium">{t('header.train')}</span>
+        </button>
+
+        {/* Language Button */}
+        <button
+          onClick={onLanguageClick}
+          className="hidden sm:flex items-center justify-center w-8 h-8 hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+          aria-label="Change Language"
+          title={`Language: ${languageInfo.nativeName}`}
+        >
+          <Globe size={16} className="text-slate-400" />
+        </button>
+
+        {/* Theme Button */}
+        <button
+          onClick={onThemeClick}
+          className="hidden sm:flex items-center justify-center w-8 h-8 hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+          aria-label="Change Theme"
+          title="Change Theme"
+        >
+          <Palette size={16} className="text-slate-400" />
+        </button>
+
+        {/* About Button */}
+        <button
+          onClick={onAboutClick}
+          className="hidden sm:flex items-center justify-center w-8 h-8 hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+          aria-label="About MicroGPT"
+          title="About MicroGPT"
+        >
+          <Info size={16} className="text-slate-400" />
+        </button>
+
         {/* GitHub Star Button */}
         <a
           href="https://github.com/yunqing/microgpt_lab"
           target="_blank"
           rel="noopener noreferrer"
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 rounded-lg transition-all group"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 rounded-lg transition-all group focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
         >
           <Star size={14} className="text-slate-400 group-hover:text-yellow-400 transition-colors" />
-          <span className="text-xs text-slate-300 group-hover:text-slate-100 font-medium">Star</span>
+          <span className="text-xs text-slate-300 group-hover:text-slate-100 font-medium">{t('header.star')}</span>
         </a>
 
         {/* Mobile GitHub Star (icon only) */}
@@ -67,15 +114,16 @@ export default function Header({ completedLevels, earnedBadges, totalParams, par
           href="https://github.com/yunqing/microgpt_lab"
           target="_blank"
           rel="noopener noreferrer"
-          className="sm:hidden flex items-center justify-center w-8 h-8 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg transition-all"
+          className="sm:hidden flex items-center justify-center w-11 h-11 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+          aria-label="Star on GitHub"
         >
-          <Star size={14} className="text-slate-400" />
+          <Star size={16} className="text-slate-400" />
         </a>
 
         <div className="flex items-center gap-1">
           <Award size={12} className="text-yellow-400 sm:w-3.5 sm:h-3.5" />
           <span className="text-xs text-yellow-400 font-mono">{earnedBadges.length}</span>
-          <span className="text-xs text-slate-500 hidden sm:inline">badges</span>
+          <span className="text-xs text-slate-500 hidden sm:inline">{t('header.badges')}</span>
         </div>
         <div className="hidden sm:flex items-center gap-1">
           {Array.from({ length: 10 }, (_, i) => (
