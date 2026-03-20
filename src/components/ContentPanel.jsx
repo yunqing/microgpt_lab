@@ -5,8 +5,12 @@ import MultiChoiceQuiz from './MultiChoiceQuiz';
 import CodeExercise from './CodeExercise';
 import { ChevronRight } from 'lucide-react';
 import { QUIZZES } from '../data/quizzes';
+import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function ContentPanel({ level, onBadgeEarned, badgesEarned, onComplete, isCompleted }) {
+  const { colors } = useTheme();
+  const { t } = useLanguage();
   const levelBadgeEarned = badgesEarned.includes(level.content.insight.badge);
   const quiz = QUIZZES[level.id];
 
@@ -20,14 +24,14 @@ export default function ContentPanel({ level, onBadgeEarned, badgesEarned, onCom
         transition={{ duration: 0.3 }}
       >
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-xs font-mono text-slate-500">Level {level.id} / 10</span>
+          <span className={`text-xs font-mono ${colors.text.muted}`}>{t('header.level')} {level.id} / 10</span>
           {isCompleted && (
             <span className="text-xs bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-full px-2 py-0.5">
-              ✓ Completed
+              ✓ {t('levels.completed')}
             </span>
           )}
         </div>
-        <h2 className="text-lg sm:text-xl font-bold text-slate-100">{level.content.heading}</h2>
+        <h2 className={`text-lg sm:text-xl font-bold ${colors.text.primary}`}>{level.content.heading}</h2>
       </motion.div>
 
       {/* Main content */}
@@ -38,12 +42,12 @@ export default function ContentPanel({ level, onBadgeEarned, badgesEarned, onCom
         transition={{ delay: 0.1 }}
         className="prose prose-sm prose-invert max-w-none"
       >
-        <div className="text-sm text-slate-300 leading-relaxed space-y-3">
+        <div className={`text-sm ${colors.text.secondary} leading-relaxed space-y-3`}>
           {level.content.body.split('\n\n').map((para, i) => (
             <p key={i} dangerouslySetInnerHTML={{
               __html: para
-                .replace(/\*\*(.+?)\*\*/g, '<strong class="text-slate-100">$1</strong>')
-                .replace(/`(.+?)`/g, '<code class="bg-slate-800 text-cyan-300 px-1 rounded text-xs font-mono">$1</code>')
+                .replace(/\*\*(.+?)\*\*/g, `<strong class="${colors.text.primary}">$1</strong>`)
+                .replace(/`(.+?)`/g, `<code class="${colors.code.bg} ${colors.accent.cyan} px-1 rounded text-xs font-mono">$1</code>`)
             }} />
           ))}
         </div>
@@ -89,9 +93,9 @@ export default function ContentPanel({ level, onBadgeEarned, badgesEarned, onCom
           onClick={onComplete}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="w-full py-3 bg-gradient-to-r from-cyan-600/30 to-indigo-600/30 border border-cyan-500/40 rounded-xl text-cyan-300 font-semibold flex items-center justify-center gap-2 hover:from-cyan-600/40 hover:to-indigo-600/40 transition-all"
+          className="w-full py-3 mt-2 bg-gradient-to-r from-cyan-600/30 to-indigo-600/30 border border-cyan-500/40 rounded-xl text-cyan-300 font-semibold flex items-center justify-center gap-2 hover:from-cyan-600/40 hover:to-indigo-600/40 transition-all"
         >
-          Complete Level {level.id} <ChevronRight size={16} />
+          {t('buttons.complete')} {level.id} <ChevronRight size={16} />
         </motion.button>
       )}
     </div>

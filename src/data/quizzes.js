@@ -39,7 +39,8 @@ export const QUIZZES = {
     codeExercise: {
       title: "Build the Tokenizer",
       description: "Given a list of name strings in `docs`, write the three lines that create: (1) `uchars` — sorted unique characters, (2) `BOS` — the integer id for the special token, (3) `vocab_size` — total number of tokens.",
-      template: `docs = ['emma', 'olivia', 'noah', 'liam']
+      template: `# Given: docs (list of name strings)
+# Example: docs = ['emma', 'olivia', 'noah', 'liam']
 
 # 1. Get all unique characters, sorted
 uchars = # YOUR CODE HERE
@@ -48,20 +49,12 @@ uchars = # YOUR CODE HERE
 BOS = # YOUR CODE HERE
 
 # 3. Total vocabulary size
-vocab_size = # YOUR CODE HERE
-
-print(uchars)       # ['a', 'e', 'h', 'i', 'l', 'm', 'n', 'o', 'v']
-print(BOS)          # 9
-print(vocab_size)   # 10`,
-      solution: `docs = ['emma', 'olivia', 'noah', 'liam']
+vocab_size = # YOUR CODE HERE`,
+      solution: `# Given: docs (list of name strings)
 
 uchars = sorted(set(''.join(docs)))
 BOS = len(uchars)
-vocab_size = len(uchars) + 1
-
-print(uchars)       # ['a', 'e', 'h', 'i', 'l', 'm', 'n', 'o', 'v']
-print(BOS)          # 9
-print(vocab_size)   # 10`,
+vocab_size = len(uchars) + 1`,
       hints: [
         "For uchars: join all docs into one string with ''.join(docs), then call set() to deduplicate, then sorted() to order them.",
         "BOS is the next integer after all char ids. Since chars are 0..len(uchars)-1, BOS = len(uchars). Then vocab_size = len(uchars) + 1."
@@ -272,13 +265,8 @@ x = # YOUR CODE HERE
     # Step 3: normalize
     return [xi * scale for xi in x]
 
-# Test:
-x = [2.0, 4.0, 0.0, -4.0]
-result = rmsnorm(x)
-# Each element should be ~ x[i] / rms(x)
-# rms = sqrt((4+16+0+16)/4) = sqrt(9) = 3.0
-# so result ≈ [0.667, 1.333, 0.0, -1.333]
-print([round(r, 3) for r in result])`,
+# Given: x (input vector) - will be provided by test
+result = rmsnorm(x)`,
       solution: `def rmsnorm(x):
     ms = sum(xi * xi for xi in x) / len(x)
     scale = (ms + 1e-5) ** -0.5
@@ -335,24 +323,17 @@ print([round(r, 3) for r in result])`,
     codeExercise: {
       title: "Compute Attention Logits",
       description: "Given query vector `q_h` and a list of key vectors `k_h` (one per past token), compute the attention logits. Each logit is the dot product of q_h with one k_h[t], scaled by 1/√head_dim.",
-      template: `head_dim = 4
-q_h = [0.5, -0.3, 0.8, 0.1]   # query for this head
-k_h = [                          # keys for 3 past tokens
-    [0.2, 0.4, -0.1, 0.9],
-    [0.7, -0.2, 0.5, 0.3],
-    [0.1, 0.8, 0.2, -0.5],
-]
+      template: `# Given: q_h (query vector), k_h (list of key vectors), head_dim
 
 # Compute one logit per past token:
 # logit[t] = dot(q_h, k_h[t]) / sqrt(head_dim)
 attn_logits = [
     # YOUR CODE HERE
     for t in range(len(k_h))
-]
+]`,
+      solution: `# Given: q_h, k_h, head_dim
 
-print([round(x, 4) for x in attn_logits])
-# expected ≈ [-0.01, 0.2375, -0.1375] (then softmax → weights)`,
-      solution: `attn_logits = [
+attn_logits = [
     sum(q_h[j] * k_h[t][j] for j in range(head_dim)) / head_dim**0.5
     for t in range(len(k_h))
 ]`,
@@ -411,23 +392,16 @@ print([round(x, 4) for x in attn_logits])
     codeExercise: {
       title: "Compute the Attention Output",
       description: "Given attention weights `attn_weights` (sums to 1) and value vectors `v_h` (one per past token, each of length head_dim), compute `head_out`: the weighted sum of value vectors.",
-      template: `head_dim = 4
-attn_weights = [0.1, 0.6, 0.3]   # sum = 1.0
-v_h = [
-    [1.0, 0.0, -1.0, 0.5],   # value at t=0
-    [0.0, 1.0,  0.5, 0.2],   # value at t=1
-    [0.5, 0.5,  0.0, 0.8],   # value at t=2
-]
+      template: `# Given: attn_weights (list of weights, sum=1), v_h (list of value vectors), head_dim
 
 # head_out[j] = sum over t of: attn_weights[t] * v_h[t][j]
 head_out = [
     # YOUR CODE HERE
     for j in range(head_dim)
-]
+]`,
+      solution: `# Given: attn_weights, v_h, head_dim
 
-print([round(x, 3) for x in head_out])
-# expected: [0.25, 0.75, 0.2, 0.41]`,
-      solution: `head_out = [
+head_out = [
     sum(attn_weights[t] * v_h[t][j] for t in range(len(v_h)))
     for j in range(head_dim)
 ]`,
@@ -485,7 +459,7 @@ print([round(x, 3) for x in head_out])
     ],
     codeExercise: {
       title: "Implement the MLP Forward Pass",
-      description: "Complete the MLP block. After RMSNorm, you need to: (1) expand with FC1 using linear(), (2) apply relu() to each element, (3) contract with FC2 using linear(), (4) add the residual connection.",
+      description: "Complete the MLP forward pass. You need to: (1) expand with FC1 using linear(), (2) apply relu() to each element, (3) contract with FC2 using linear().",
       template: `def linear(x, w):
     return [sum(wi * xi for wi, xi in zip(wo, x)) for wo in w]
 
@@ -497,41 +471,33 @@ def rmsnorm(x):
 def relu(v):
     return max(0, v)  # for a scalar Value or float
 
-# Given: x (list of 16), mlp_fc1 (64x16 matrix), mlp_fc2 (16x64 matrix)
-def mlp_block(x, mlp_fc1, mlp_fc2):
-    x_residual = x
-    x = rmsnorm(x)
+# Given: x, mlp_fc1, mlp_fc2 (will be provided by test)
+# Implement MLP forward pass
+h = linear(x, mlp_fc1)         # Step 1: expand
 
-    # Step 1: expand 16 → 64
-    x = # YOUR CODE HERE
+h = # YOUR CODE HERE           # Step 2: apply ReLU element-wise
 
-    # Step 2: non-linearity
-    x = # YOUR CODE HERE
+h = linear(h, mlp_fc2)         # Step 3: contract
 
-    # Step 3: contract 64 → 16
-    x = # YOUR CODE HERE
+out = h                        # Output (no residual for simplicity)`,
+      solution: `# Given: x, mlp_fc1, mlp_fc2, linear() and relu() functions
 
-    # Step 4: residual connection
-    x = # YOUR CODE HERE
-
-    return x`,
-      solution: `    x = linear(x, mlp_fc1)
-    x = [xi.relu() for xi in x]   # (or [relu(xi) for xi in x])
-    x = linear(x, mlp_fc2)
-    x = [a + b for a, b in zip(x, x_residual)]`,
+h = linear(x, mlp_fc1)
+h = [relu(xi) for xi in h]
+h = linear(h, mlp_fc2)
+out = h`,
       hints: [
-        "Steps 1 and 3 use linear(x, weight_matrix). Step 2 applies relu to every element: [xi.relu() for xi in x] (or [relu(xi) for xi in x] if using plain floats).",
-        "Step 4 is the residual: [a + b for a, b in zip(x, x_residual)]. This adds the MLP output back to what x was before this block started."
+        "Steps 1 and 3 use linear(x, weight_matrix) or linear(h, weight_matrix). Step 2 applies relu to every element: [relu(xi) for xi in h].",
+        "The full pattern: h = linear(x, mlp_fc1), then h = [relu(xi) for xi in h], then h = linear(h, mlp_fc2), finally out = h."
       ],
       validate: (code) => {
         const checks = [
-          { label: "FC1 expansion: linear(x, mlp_fc1)", ok: /linear\s*\(\s*x\s*,\s*mlp_fc1\s*\)/.test(code) },
-          { label: "ReLU applied element-wise", ok: /relu/.test(code) && (/for\s+xi\s+in\s+x/.test(code) || /\.relu\(\)/.test(code)) },
-          { label: "FC2 contraction: linear(x, mlp_fc2)", ok: /linear\s*\(\s*x\s*,\s*mlp_fc2\s*\)/.test(code) },
-          { label: "Residual connection with zip", ok: /zip\s*\(\s*x\s*,\s*x_residual\s*\)/.test(code) },
+          { label: "FC1 expansion: linear(..., mlp_fc1)", ok: /linear\s*\([^)]*mlp_fc1\s*\)/.test(code) },
+          { label: "ReLU applied element-wise", ok: /relu/.test(code) && /for\s+\w+\s+in\s+/.test(code) },
+          { label: "FC2 contraction: linear(..., mlp_fc2)", ok: /linear\s*\([^)]*mlp_fc2\s*\)/.test(code) },
         ];
         const pass = checks.every(c => c.ok);
-        return { pass, checks, message: pass ? "Excellent! You've implemented the exact MLP used in GPT-2 (minus GeLU vs ReLU)." : "Follow the 4 steps: FC1 → ReLU → FC2 → residual." };
+        return { pass, checks, message: pass ? "Excellent! You've implemented the MLP forward pass." : "Follow the 3 steps: FC1 → ReLU → FC2." };
       }
     }
   },
@@ -576,20 +542,15 @@ def mlp_block(x, mlp_fc1, mlp_fc2):
       description: "Given `probs` (list of probabilities from softmax, one per token in vocab) and `target_id` (index of the correct next token), compute the cross-entropy loss for this single prediction.",
       template: `import math
 
-# Example: 5-token vocab, target is token 2
-probs = [0.05, 0.10, 0.70, 0.10, 0.05]  # sum = 1.0
-target_id = 2
+# Given: probs (probability distribution, sum=1), target_id (correct token index)
 
 # Cross-entropy: negative log probability of the correct token
-loss = # YOUR CODE HERE
+loss = # YOUR CODE HERE`,
+      solution: `import math
 
-print(f"loss = {loss:.4f}")   # expected: 0.3567
-print(f"p(correct) = {probs[target_id]:.2f}")  # 0.70
+# Given: probs, target_id
 
-# Edge cases to think about:
-# If p(correct) = 1.0 → loss = 0.0  (perfect!)
-# If p(correct) = 0.01 → loss ≈ 4.6  (very wrong!)`,
-      solution: `loss = -math.log(probs[target_id])`,
+loss = -math.log(probs[target_id])`,
       hints: [
         "Cross-entropy for a single example is just: -log(probability of the correct class). You need probs[target_id] and math.log().",
         "It's literally one line: loss = -math.log(probs[target_id]). In microgpt, probs[target_id] is a Value object, so it would be: loss = -probs[target_id].log()"
@@ -644,12 +605,7 @@ print(f"p(correct) = {probs[target_id]:.2f}")  # 0.70
     codeExercise: {
       title: "Implement One Adam Step",
       description: "Complete one Adam parameter update. Given: gradient `g`, previous moment estimates `m_prev` and `v_prev`, step number `t`, and hyperparameters.",
-      template: `beta1, beta2, lr, eps = 0.85, 0.99, 0.01, 1e-8
-
-# Current gradient for this parameter
-g = 0.5
-t = 10  # step number (1-indexed)
-m_prev, v_prev = 0.3, 0.1  # previous moment estimates
+      template: `# Given: g (gradient), m_prev, v_prev, t (step number), beta1, beta2, lr, eps
 
 # Step 1: update 1st moment (momentum)
 m = # YOUR CODE HERE
@@ -662,12 +618,10 @@ m_hat = # YOUR CODE HERE
 v_hat = # YOUR CODE HERE
 
 # Step 4: compute parameter update (how much to subtract from p.data)
-update = # YOUR CODE HERE
+update = # YOUR CODE HERE`,
+      solution: `# Given: g, m_prev, v_prev, t, beta1, beta2, lr, eps
 
-print(f"m = {m:.4f}")       # ≈ 0.3300
-print(f"v = {v:.4f}")       # ≈ 0.1015
-print(f"update = {update:.6f}")  # ≈ 0.010005`,
-      solution: `m = beta1 * m_prev + (1 - beta1) * g
+m = beta1 * m_prev + (1 - beta1) * g
 v = beta2 * v_prev + (1 - beta2) * g ** 2
 m_hat = m / (1 - beta1 ** t)
 v_hat = v / (1 - beta2 ** t)
@@ -736,9 +690,7 @@ def softmax(logits):
     total = sum(exps)
     return [e / total for e in exps]
 
-# Pretend logits from the model (5-token vocab for simplicity)
-logits = [2.1, 0.5, 3.8, 1.2, 0.9]
-temperature = 0.5
+# Given: logits (model output), temperature (scaling factor)
 
 # Step 1: scale logits by temperature, then softmax
 probs = softmax(# YOUR CODE HERE
@@ -748,12 +700,10 @@ probs = softmax(# YOUR CODE HERE
 token_id = random.choices(
     range(len(logits)),
     weights=# YOUR CODE HERE
-)[0]
+)[0]`,
+      solution: `# Given: logits, temperature (and softmax function, random module)
 
-print("probs:", [round(p, 3) for p in probs])
-print("sampled token:", token_id)
-# At T=0.5: high-prob tokens (index 2) sampled most often`,
-      solution: `probs = softmax([l / temperature for l in logits])
+probs = softmax([l / temperature for l in logits])
 token_id = random.choices(range(len(logits)), weights=probs)[0]`,
       hints: [
         "Temperature scaling: divide EACH logit by temperature before softmax. Use a list comprehension: [l / temperature for l in logits].",

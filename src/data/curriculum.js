@@ -24,11 +24,13 @@ print(f"vocab size: {vocab_size}")`,
     highlightLines: [1, 6, 11, 12, 13],
     content: {
       heading: "Level 1: The Dataset",
-      body: `The model learns from a list of names (like "emma", "olivia", "noah"). Each document is a single name.
+      body: `The fuel of language models is text data. In production LLMs, each document would be a web page, but microgpt uses 32,000 names as a simpler example.
 
-**Character-level tokenization** means every unique character becomes a token ID. For names, the vocab is just 26 letters — tiny!
+**Character-level tokenization** assigns one integer to each unique character. For the names dataset, we get 26 lowercase letters (a-z), giving us token IDs 0-25. Each token is just a discrete symbol — the numbers themselves have no meaning.
 
-The special **BOS** (Beginning of Sequence) token marks the start and end of each name. When the model sees BOS, it learns to start a new name. When it predicts BOS again, it knows the name is done.`,
+The special **BOS** (Beginning of Sequence) token acts as a delimiter. Each name gets wrapped: [BOS, e, m, m, a, BOS]. The model learns that BOS initiates a new name and another BOS ends it. Our final vocabulary: 27 tokens (26 letters + 1 BOS).
+
+**Production difference**: Real tokenizers like tiktoken (used by GPT-4) use BPE (Byte Pair Encoding) with ~100K tokens, where common words like "the" become single tokens. Much more efficient!`,
       insight: {
         question: "Why do we use `random.shuffle(docs)` before training?",
         answer: "To prevent the model from learning order-dependent biases — we want it to generalize across all names, not overfit to the sequence they appear in the file.",
@@ -77,14 +79,23 @@ The special **BOS** (Beginning of Sequence) token marks the start and end of eac
     highlightLines: [5, 6, 7, 13, 27],
     content: {
       heading: "Level 2: The Value Class",
-      body: `Every number in microgpt is wrapped in a **Value** object. This tiny class is what makes training possible.
+      body: `Training a neural network requires **gradients**: for each parameter, we need to know "if I nudge this number up, does the loss go up or down, and by how much?"
 
-- **\`.data\`** — the actual number (forward pass result)
-- **\`.grad\`** — how much this number affects the loss (set by \`.backward()\`)
-- **\`._children\`** — the Values that created this Value
-- **\`._local_grads\`** — local derivative of this operation
+The **Value** class implements autograd from scratch. Think of each operation as a lego block that knows:
+1. How to compute its output (forward pass)
+2. How its output changes w.r.t. its inputs (local gradient)
 
-The **chain rule** in \`backward()\` walks the computation graph in reverse topological order, multiplying local gradients along the way: \`child.grad += local_grad × parent.grad\``,
+**Example**: For multiplication \`a * b\`, the forward pass gives \`a·b\`, and the local gradients are \`∂(a·b)/∂a = b\` and \`∂(a·b)/∂b = a\`.
+
+The \`backward()\` method applies the **chain rule**: if the loss is L and node v has child c with local gradient ∂v/∂c, then:
+
+\`\`\`
+∂L/∂c += (∂v/∂c) × (∂L/∂v)
+\`\`\`
+
+This is just multiplying rates of change along paths! Like: "car is 2x faster than bike, bike is 4x faster than walking, so car is 2×4=8x faster than walking."
+
+**Production difference**: PyTorch does the same thing but on tensors (arrays) instead of scalars, running on GPUs for massive parallelism.`,
       insight: {
         question: "Why does `__mul__` store `(other.data, self.data)` as local_grads?",
         answer: "Because d(a×b)/da = b and d(a×b)/db = a. By storing the other operand's value as the local gradient, backward() can apply the chain rule automatically.",
@@ -194,15 +205,19 @@ for h in range(n_head):
     highlightLines: [2, 3, 4, 11, 12, 13],
     content: {
       heading: "Level 5: The QKV Split",
-      body: `Every token gets transformed into three roles via **three separate weight matrices**:
+      body: `Attention is the **communication mechanism** — the only place where a token at position t can "look" at tokens from the past (positions 0..t-1).
+
+Every token is projected into three vectors:
 
 - **Query (Q)**: "What am I looking for?"
 - **Key (K)**: "What do I contain?"
-- **Value (V)**: "What do I actually pass forward?"
+- **Value (V)**: "What information do I offer if selected?"
 
-The dot-product Q·K measures similarity between positions. High similarity = high attention weight = that token's Value vector has more influence on the output.
+**Example**: In the name "emma", when at the second "m" trying to predict next, the model might learn a query like "what vowels appeared recently?" The earlier "e" has a key that matches well, gets high attention weight, and its value (vowel information) flows forward.
 
-With 4 heads (head_dim=4 each), the model can attend to different aspects simultaneously.`,
+**Multi-head attention** (4 heads here) lets the model attend to different patterns simultaneously — one head might track vowels, another consonants, etc.
+
+The dot product Q·K (scaled by 1/√head_dim) measures similarity. Softmax converts these scores to weights summing to 1. Then we take a weighted sum of Value vectors.`,
       insight: {
         question: "Why scale attention logits by `1/sqrt(head_dim)`?",
         answer: "Without scaling, dot products grow large with dimension, pushing softmax into saturation (near 0 or 1 gradients). Dividing by √head_dim keeps the variance of dot products ~1.",
