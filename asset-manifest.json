@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/microgpt_lab/static/css/main.cb20f3d2.css",
-    "main.js": "/microgpt_lab/static/js/main.dad33671.js",
+    "main.css": "/microgpt_lab/static/css/main.f3db8017.css",
+    "main.js": "/microgpt_lab/static/js/main.57005706.js",
     "static/js/453.1365afac.chunk.js": "/microgpt_lab/static/js/453.1365afac.chunk.js",
     "index.html": "/microgpt_lab/index.html",
-    "main.cb20f3d2.css.map": "/microgpt_lab/static/css/main.cb20f3d2.css.map",
-    "main.dad33671.js.map": "/microgpt_lab/static/js/main.dad33671.js.map",
+    "main.f3db8017.css.map": "/microgpt_lab/static/css/main.f3db8017.css.map",
+    "main.57005706.js.map": "/microgpt_lab/static/js/main.57005706.js.map",
     "453.1365afac.chunk.js.map": "/microgpt_lab/static/js/453.1365afac.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.cb20f3d2.css",
-    "static/js/main.dad33671.js"
+    "static/css/main.f3db8017.css",
+    "static/js/main.57005706.js"
   ]
 }
