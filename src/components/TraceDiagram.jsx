@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useTheme } from '../contexts/ThemeContext';
 
 const STAGES = [
   { id: 1, label: 'Input', sublabel: 'char', levels: [1] },
@@ -13,9 +14,11 @@ const STAGES = [
 ];
 
 export default function TraceDiagram({ currentLevel }) {
+  const { colors } = useTheme();
+
   return (
-    <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-2 sm:p-3">
-      <p className="text-xs text-slate-500 mb-2 sm:mb-3 uppercase tracking-wider">Trace the Token</p>
+    <div className={`${colors.bg.secondary} ${colors.border.primary} border rounded-xl p-2 sm:p-3`}>
+      <p className={`text-xs ${colors.text.tertiary} mb-2 sm:mb-3 uppercase tracking-wider`}>Trace the Token</p>
       <div className="flex items-center gap-0.5 sm:gap-1 overflow-x-auto pb-1">
         {STAGES.map((stage, i) => {
           const isActive = stage.levels.includes(currentLevel);
@@ -26,10 +29,10 @@ export default function TraceDiagram({ currentLevel }) {
               <motion.div
                 className={`relative flex flex-col items-center px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg border text-center transition-all ${
                   isActive
-                    ? 'bg-cyan-500/20 border-cyan-500/60 text-cyan-300'
+                    ? 'bg-cyan-500/20 border-cyan-500/60 text-cyan-600'
                     : isPast
-                    ? 'bg-slate-700/50 border-slate-600 text-slate-400'
-                    : 'bg-slate-800/40 border-slate-700/50 text-slate-600'
+                    ? `${colors.bg.tertiary} ${colors.border.secondary} ${colors.text.tertiary}`
+                    : `${colors.bg.primary} ${colors.border.primary} ${colors.text.muted}`
                 }`}
                 animate={isActive ? {
                   boxShadow: ['0 0 0 0 rgba(6,182,212,0)', '0 0 0 4px rgba(6,182,212,0.2)', '0 0 0 0 rgba(6,182,212,0)']

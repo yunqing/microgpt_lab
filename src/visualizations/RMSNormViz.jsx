@@ -13,8 +13,8 @@ export default function RMSNormViz() {
 
   const rms = Math.sqrt(rawVec.reduce((s, v) => s + v * v, 0) / rawVec.length);
 
-  const rawMax = Math.max(...rawVec.map(Math.abs));
-  const normMax = Math.max(...normed.map(Math.abs));
+  // Use the same scale for both charts so we can see the magnitude change!
+  const globalMax = Math.max(...rawVec.map(Math.abs));
 
   const scramble = () => {
     setRawVec(Array.from({ length: 8 }, () => (Math.random() - 0.5) * 20));
@@ -26,6 +26,7 @@ export default function RMSNormViz() {
         <div>
           <p className="text-xs text-slate-400">RMS of input: <span className="text-orange-300 font-mono">{rms.toFixed(3)}</span></p>
           <p className="text-xs text-slate-400">Scale factor (1/√ms): <span className="text-cyan-300 font-mono">{(1 / (rms + 1e-5)).toFixed(3)}</span></p>
+          <p className="text-xs text-slate-500 mt-1">💡 Both charts use the same scale to show magnitude change</p>
         </div>
         <button
           onClick={scramble}
@@ -38,9 +39,9 @@ export default function RMSNormViz() {
       {/* Bar charts side by side */}
       <div className="grid grid-cols-2 gap-4">
         {[
-          { label: 'Before RMSNorm', data: rawVec, max: rawMax, color1: 'bg-orange-400', color2: 'bg-red-500' },
-          { label: 'After RMSNorm', data: normed, max: normMax, color1: 'bg-cyan-400', color2: 'bg-indigo-400' },
-        ].map(({ label, data, max, color1, color2 }) => (
+          { label: 'Before RMSNorm', data: rawVec, color1: 'bg-orange-400', color2: 'bg-red-500' },
+          { label: 'After RMSNorm', data: normed, color1: 'bg-cyan-400', color2: 'bg-indigo-400' },
+        ].map(({ label, data, color1, color2 }) => (
           <div key={label}>
             <p className="text-xs text-slate-500 mb-2">{label}</p>
             <div className="flex items-end gap-1 h-28">
@@ -51,7 +52,7 @@ export default function RMSNormViz() {
                       <motion.div
                         className={`w-full rounded-t-sm ${color1}`}
                         initial={{ height: 0 }}
-                        animate={{ height: `${(v / max) * 100}%` }}
+                        animate={{ height: `${(v / globalMax) * 100}%` }}
                         style={{ minHeight: 2 }}
                         transition={{ duration: 0.4 }}
                       />
@@ -62,7 +63,7 @@ export default function RMSNormViz() {
                       <motion.div
                         className={`w-full rounded-b-sm ${color2}`}
                         initial={{ height: 0 }}
-                        animate={{ height: `${(-v / max) * 100}%` }}
+                        animate={{ height: `${(-v / globalMax) * 100}%` }}
                         style={{ minHeight: 2 }}
                         transition={{ duration: 0.4 }}
                       />

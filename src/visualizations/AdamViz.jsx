@@ -9,7 +9,7 @@ const EPS = 1e-8;
 
 function genGradSequence(seed) {
   let s = seed;
-  return Array.from({ length: 60 }, (i) => {
+  return Array.from({ length: 60 }, (_, i) => {
     s = Math.sin(s * 7.3 + i * 0.3) * 2.1 - Math.cos(s * 3.1 + i * 0.2) * 1.4;
     return s;
   });

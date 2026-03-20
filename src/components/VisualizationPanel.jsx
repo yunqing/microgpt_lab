@@ -10,6 +10,7 @@ import LossViz from '../visualizations/LossViz';
 import AdamViz from '../visualizations/AdamViz';
 import InferenceViz from '../visualizations/InferenceViz';
 import TraceDiagram from './TraceDiagram';
+import { useTheme } from '../contexts/ThemeContext';
 
 const VIZ_MAP = {
   tokenizer: TokenizerViz,
@@ -25,6 +26,7 @@ const VIZ_MAP = {
 };
 
 export default function VisualizationPanel({ level }) {
+  const { colors } = useTheme();
   const VizComponent = VIZ_MAP[level.content.visualType];
 
   return (
@@ -33,10 +35,10 @@ export default function VisualizationPanel({ level }) {
       <TraceDiagram currentLevel={level.id} />
 
       {/* Level-specific visualization */}
-      <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-3 sm:p-4 flex-1">
+      <div className={`${colors.bg.secondary} ${colors.border.primary} border rounded-xl p-3 sm:p-4 flex-1`}>
         <div className="flex items-center gap-2 mb-4">
           <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-          <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
+          <p className={`text-xs ${colors.text.tertiary} font-semibold uppercase tracking-wider`}>
             Interactive: {level.title}
           </p>
         </div>
