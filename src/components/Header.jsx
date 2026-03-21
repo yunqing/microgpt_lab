@@ -59,15 +59,15 @@ export default function Header({ completedLevels, earnedBadges, totalParams, par
 
       {/* Badges & Progress */}
       <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-        {/* Train Button */}
+        {/* Train Button - Always visible, important feature */}
         <button
           onClick={onTrainClick}
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-500/30 rounded-lg transition-all group focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+          className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-500/30 rounded-lg transition-all group focus:outline-none focus:ring-2 focus:ring-purple-500/50"
           aria-label="Try Training"
           title="Experience Training"
         >
           <Zap size={14} className="text-purple-400 group-hover:text-purple-300" />
-          <span className="text-xs text-purple-300 font-medium">{t('header.train')}</span>
+          <span className="text-xs text-purple-300 font-medium hidden sm:inline">{t('header.train')}</span>
         </button>
 
         {/* Language Button */}
@@ -129,13 +129,6 @@ export default function Header({ completedLevels, earnedBadges, totalParams, par
                 onClick={() => setShowMobileMenu(false)}
               />
               <div className="absolute right-0 top-full mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 py-1">
-                <button
-                  onClick={() => { onTrainClick(); setShowMobileMenu(false); }}
-                  className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-700 transition-colors text-left"
-                >
-                  <Zap size={16} className="text-purple-400" />
-                  <span className="text-sm text-slate-300">{t('header.train')}</span>
-                </button>
                 <button
                   onClick={() => { onLanguageClick(); setShowMobileMenu(false); }}
                   className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-700 transition-colors text-left"

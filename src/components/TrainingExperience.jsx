@@ -312,7 +312,7 @@ export default function TrainingExperience({ onClose, onComplete }) {
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-slate-900 border border-slate-700 rounded-xl w-full h-full max-w-[1400px] max-h-[95vh] overflow-hidden flex flex-col"
+        className="bg-slate-900 border border-slate-700 rounded-xl w-full h-full max-w-[95vw] lg:max-w-[1400px] max-h-[95vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -336,13 +336,15 @@ export default function TrainingExperience({ onClose, onComplete }) {
         </div>
 
         {/* Two-panel body */}
-        <div className="flex-1 flex overflow-hidden min-h-0">
-          {/* Left: Code editor (60%) — always dark regardless of theme */}
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
+          {/* Left: Code editor — always dark regardless of theme */}
           <div style={{
-            width: '60%', display: 'flex', flexDirection: 'column',
+            display: 'flex', flexDirection: 'column',
             borderRight: '1px solid #334155', overflow: 'hidden',
             backgroundColor: '#282c34',
-          }}>
+          }}
+          className="w-full lg:w-[60%] flex-shrink-0 h-1/2 lg:h-full"
+          >
             <div style={{
               padding: '8px 12px', backgroundColor: 'rgba(30,41,59,0.8)',
               borderBottom: '1px solid #334155', display: 'flex',
@@ -352,7 +354,7 @@ export default function TrainingExperience({ onClose, onComplete }) {
               <span style={{ color: '#475569' }}>·</span>
               <span style={{ fontSize: '11px', color: '#64748b' }}>Python</span>
             </div>
-            <div className="code-editor-container" style={{ flex: 1, overflow: 'auto', backgroundColor: '#282c34' }}>
+            <div className="code-editor-container" style={{ flex: 1, overflow: 'auto', backgroundColor: '#282c34', WebkitOverflowScrolling: 'touch' }}>
               <Editor
                 value={code}
                 onValueChange={setCode}
@@ -375,8 +377,8 @@ export default function TrainingExperience({ onClose, onComplete }) {
             </div>
           </div>
 
-          {/* Right: Controls + Terminal (40%) */}
-          <div className="w-[40%] flex flex-col overflow-hidden bg-slate-950">
+          {/* Right: Controls + Terminal */}
+          <div className="w-full lg:w-[40%] flex flex-col overflow-hidden bg-slate-950 flex-shrink-0 h-1/2 lg:h-full">
             {/* Controls bar */}
             <div className="px-3 py-2 border-b border-slate-800 flex items-center gap-2 flex-shrink-0">
               <button
