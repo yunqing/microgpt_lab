@@ -85,10 +85,10 @@
 }
 
 /* Override hardcoded backgrounds in light theme - make them white/very light */
-[data-theme="light"] .bg-slate-700,
-[data-theme="light"] .bg-slate-800,
-[data-theme="light"] .bg-slate-900,
-[data-theme="light"] .bg-slate-950 {
+[data-theme="light"] .bg-slate-700:not(.code-editor-dark),
+[data-theme="light"] .bg-slate-800:not(.code-editor-dark),
+[data-theme="light"] .bg-slate-900:not(.code-editor-dark),
+[data-theme="light"] .bg-slate-950:not(.code-editor-dark) {
   background-color: #ffffff !important; /* Pure white */
 }
 
@@ -106,7 +106,7 @@
 }
 
 /* Fix code input boxes - make text black and background white */
-[data-theme="light"] textarea,
+[data-theme="light"] textarea:not(.code-editor-textarea),
 [data-theme="light"] input[type="text"],
 [data-theme="light"] input[type="number"],
 [data-theme="light"] input {
@@ -115,9 +115,9 @@
   border-color: #d1d5db !important; /* Gray-300 border */
 }
 
-/* Fix code blocks */
-[data-theme="light"] pre,
-[data-theme="light"] code {
+/* Fix code blocks (skip the training code editor) */
+[data-theme="light"] pre:not(.code-editor-pre),
+[data-theme="light"] code:not(.code-editor-code) {
   color: #000000 !important; /* Black text */
   background-color: #f3f4f6 !important; /* Light gray-100 background */
 }
