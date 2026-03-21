@@ -37,7 +37,7 @@ export default function CodePanel({ level }) {
             <div className="w-3 h-3 rounded-full bg-green-500/70" />
           </div>
           <Code size={13} className="text-slate-400 ml-2" />
-          <span className="text-xs text-slate-400 font-mono">main.py</span>
+          <span className="text-xs text-slate-400 font-mono">microgpt.py</span>
           <span className="text-xs text-slate-600">
             lines {level.codeLines[0]}–{level.codeLines[1]}
           </span>

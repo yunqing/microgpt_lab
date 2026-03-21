@@ -191,7 +191,7 @@ function FullModelModal({ onClose }) {
               <div className="w-3 h-3 rounded-full bg-green-500/70" />
             </div>
             <span className="text-sm font-semibold text-slate-200 font-mono">gpt() — full model</span>
-            <span className="text-xs text-slate-500">main.py:108–144</span>
+            <span className="text-xs text-slate-500">microgpt.py:108–144</span>
           </div>
           <button
             onClick={onClose}

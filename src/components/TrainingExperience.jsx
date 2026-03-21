@@ -6,7 +6,8 @@ import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-python';
 import 'prismjs/themes/prism-okaidia.css';
 
-const ORIGINAL_CODE = `import math
+const ORIGINAL_CODE = `# https://gist.github.com/karpathy/8627fe009c40f57531cb18360106ce95
+import math
 import random
 import io
 import sys
@@ -148,7 +149,7 @@ m = [0.0] * len(params)
 v = [0.0] * len(params)
 
 # Training loop
-num_steps = 50
+num_steps = 30  # Reduced from 50 for faster execution on mobile devices
 for step in range(num_steps):
     doc = docs[step % len(docs)]
     tokens = [BOS] + [uchars.index(ch) for ch in doc] + [BOS]
@@ -322,7 +323,7 @@ export default function TrainingExperience({ onClose, onComplete }) {
               <Zap size={16} className="text-white" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-slate-100">microgpt — main.py</h2>
+              <h2 className="text-sm font-bold text-slate-100">microgpt — microgpt.py</h2>
               <p className="text-xs text-slate-500">Edit the code, then click Run Training</p>
             </div>
           </div>
@@ -350,7 +351,7 @@ export default function TrainingExperience({ onClose, onComplete }) {
               borderBottom: '1px solid #334155', display: 'flex',
               alignItems: 'center', gap: '8px', flexShrink: 0,
             }}>
-              <span style={{ fontSize: '11px', color: '#94a3b8', fontFamily: 'monospace' }}>main.py</span>
+              <span style={{ fontSize: '11px', color: '#94a3b8', fontFamily: 'monospace' }}>microgpt.py</span>
               <span style={{ color: '#475569' }}>·</span>
               <span style={{ fontSize: '11px', color: '#64748b' }}>Python</span>
             </div>
@@ -411,7 +412,7 @@ export default function TrainingExperience({ onClose, onComplete }) {
                 <div className="text-slate-600 select-none">
                   <div>$ click ▶ Run Training to execute the code</div>
                   <div className="mt-1">$ you can edit the code on the left first</div>
-                  <div className="mt-1 text-slate-700">$ try changing num_steps = 50 → num_steps = 10</div>
+                  <div className="mt-1 text-slate-700">$ try changing num_steps = 30 → num_steps = 10</div>
                 </div>
               )}
               {outputLines.map((line, i) => {
