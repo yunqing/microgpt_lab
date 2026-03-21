@@ -36,7 +36,7 @@ export default function LanguageSelector({ onClose }) {
               </div>
               <div>
                 <h2 className={`text-lg font-bold ${colors.text.primary}`}>
-                  {t('theme.chooseTheme').replace('Theme', 'Language')}
+                  Choose Language
                 </h2>
                 <p className={`text-xs ${colors.text.muted}`}>
                   Select your preferred language

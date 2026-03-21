@@ -309,8 +309,7 @@ result = rmsnorm(x)`,
       },
       {
         question: "With n_embd=16 and n_head=4, what is head_dim?",
-        options: ["4", "8", "16", "64"]
-        ,
+        options: ["4", "8", "16", "64"],
         correct: 0,
         explanations: [
           "Correct! head_dim = n_embd // n_head = 16 // 4 = 4. Each head gets its own 4-dimensional subspace.",
@@ -318,44 +317,7 @@ result = rmsnorm(x)`,
           "That's n_embd itself. head_dim is the per-head dimension after splitting.",
           "64 = 4 × n_embd. That's the MLP expansion size, not head_dim."
         ]
-      }
-    ],
-    codeExercise: {
-      title: "Compute Attention Logits",
-      description: "Given query vector `q_h` and a list of key vectors `k_h` (one per past token), compute the attention logits. Each logit is the dot product of q_h with one k_h[t], scaled by 1/√head_dim.",
-      template: `# Given: q_h (query vector), k_h (list of key vectors), head_dim
-
-# Compute one logit per past token:
-# logit[t] = dot(q_h, k_h[t]) / sqrt(head_dim)
-attn_logits = [
-    # YOUR CODE HERE
-    for t in range(len(k_h))
-]`,
-      solution: `# Given: q_h, k_h, head_dim
-
-attn_logits = [
-    sum(q_h[j] * k_h[t][j] for j in range(head_dim)) / head_dim**0.5
-    for t in range(len(k_h))
-]`,
-      hints: [
-        "Each logit is a dot product: Σ q_h[j] * k_h[t][j] for j in range(head_dim). Use sum() with a generator.",
-        "After the dot product, divide by head_dim**0.5 (= √4 = 2.0). The full expression: sum(q_h[j] * k_h[t][j] for j in range(head_dim)) / head_dim**0.5"
-      ],
-      validate: (code) => {
-        const checks = [
-          { label: "Uses sum(...) for dot product", ok: /sum\s*\(/.test(code) },
-          { label: "Multiplies q_h[j] * k_h[t][j]", ok: /q_h\s*\[.*\]\s*\*\s*k_h\s*\[.*\]/.test(code) },
-          { label: "Iterates j in range(head_dim)", ok: /for\s+j\s+in\s+range\s*\(\s*head_dim\s*\)/.test(code) },
-          { label: "Scales by / head_dim**0.5", ok: /\/\s*head_dim\s*\*\*\s*0\.5/.test(code) },
-        ];
-        const pass = checks.every(c => c.ok);
-        return { pass, checks, message: pass ? "Spot on! This is the heart of scaled dot-product attention." : "Build it step by step: dot product first, then scale." };
-      }
-    }
-  },
-
-  6: {
-    mcqs: [
+      },
       {
         question: "After softmax, attention weights for a query always:",
         options: [
@@ -390,8 +352,8 @@ attn_logits = [
       }
     ],
     codeExercise: {
-      title: "Compute the Attention Output",
-      description: "Given attention weights `attn_weights` (sums to 1) and value vectors `v_h` (one per past token, each of length head_dim), compute `head_out`: the weighted sum of value vectors.",
+      title: "Compute the Attention Output (Weighted Sum)",
+      description: "Given attention weights `attn_weights` (sums to 1, one per past token) and value vectors `v_h` (list of lists, shape [T, head_dim]), compute `head_out`: the weighted sum of value vectors across all past tokens.",
       template: `# Given: attn_weights (list of weights, sum=1), v_h (list of value vectors), head_dim
 
 # head_out[j] = sum over t of: attn_weights[t] * v_h[t][j]
@@ -406,8 +368,8 @@ head_out = [
     for j in range(head_dim)
 ]`,
       hints: [
-        "For each output dimension j, you compute a weighted average across all time steps t. For j=0: 0.1*1.0 + 0.6*0.0 + 0.3*0.5 = 0.25",
-        "Use: sum(attn_weights[t] * v_h[t][j] for t in range(len(v_h))). The outer list comprehension iterates over j (dimensions), inner sum iterates over t (time)."
+        "For each output dimension j, you compute a weighted average across all time steps t. For j=0: 0.1*v[0][0] + 0.6*v[1][0] + 0.3*v[2][0]. Use sum() with a generator.",
+        "Use: sum(attn_weights[t] * v_h[t][j] for t in range(len(v_h))). The outer comprehension iterates j (dimensions), the inner sum iterates t (time steps)."
       ],
       validate: (code) => {
         const checks = [
@@ -422,7 +384,7 @@ head_out = [
     }
   },
 
-  7: {
+  6: {
     mcqs: [
       {
         question: "The MLP expands from n_embd=16 to 4*n_embd=64, then contracts back to 16. Why expand at all?",
@@ -498,6 +460,81 @@ out = h`,
         ];
         const pass = checks.every(c => c.ok);
         return { pass, checks, message: pass ? "Excellent! You've implemented the MLP forward pass." : "Follow the 3 steps: FC1 → ReLU → FC2." };
+      }
+    }
+  },
+
+  7: {
+    mcqs: [
+      {
+        question: "In microgpt, RMSNorm is applied BEFORE each sub-block (pre-norm). What is the main advantage?",
+        options: [
+          "Pre-norm and post-norm are numerically identical — there's no real difference",
+          "Pre-norm ensures each sub-block receives a well-scaled input, making deep training more stable",
+          "Pre-norm allows the residual connections to be removed",
+          "Pre-norm doubles the gradient magnitude at each layer"
+        ],
+        correct: 1,
+        explanations: [
+          "They are NOT identical — pre-norm and post-norm have very different gradient dynamics, especially at depth.",
+          "Correct! With pre-norm, each sub-block (attention/MLP) always sees a unit-scale input regardless of how large the residual stream has grown. This was a key finding in the PaLM and LLaMA papers.",
+          "Residual connections are orthogonal to normalization placement. Microgpt uses both pre-norm AND residuals.",
+          "Normalization reduces magnitude, it doesn't amplify it. Pre-norm stabilizes scale, not increases it."
+        ]
+      },
+      {
+        question: "Within a single transformer layer, how many times is `x_residual = x` saved?",
+        options: [
+          "Once — before the entire layer",
+          "Twice — once before attention, once before MLP",
+          "Three times — before each norm and at layer end",
+          "It's never saved — residuals use a separate buffer"
+        ],
+        correct: 1,
+        explanations: [
+          "Saving once would mix the post-attention residual into the pre-MLP input incorrectly.",
+          "Correct! `x_residual = x` is saved before attention (for the first residual add) and again before MLP (for the second residual add). Each sub-block gets its own clean bypass.",
+          "Saving before norms would be redundant — the norm doesn't change x_residual.",
+          "x_residual is a plain Python variable — it's just x assigned to a new name before each sub-block."
+        ]
+      }
+    ],
+    codeExercise: {
+      title: "Assemble One Transformer Layer",
+      description: "Complete the two residual additions inside the transformer layer loop. Each sub-block (attention, MLP) follows the pattern: save residual → apply norm → run sub-block → add back residual.",
+      template: `# Given: x, n_layer, rmsnorm(), mha(), mlp() functions
+
+for li in range(n_layer):
+    # --- Attention block ---
+    x_residual = x
+    x = mha(rmsnorm(x), li)   # multi-head attention on normed input
+    x = # YOUR CODE HERE      # residual add #1
+
+    # --- MLP block ---
+    x_residual = x
+    x = mlp(rmsnorm(x), li)   # MLP on normed input
+    x = # YOUR CODE HERE      # residual add #2`,
+      solution: `for li in range(n_layer):
+    x_residual = x
+    x = mha(rmsnorm(x), li)
+    x = [a + b for a, b in zip(x, x_residual)]
+
+    x_residual = x
+    x = mlp(rmsnorm(x), li)
+    x = [a + b for a, b in zip(x, x_residual)]`,
+      hints: [
+        "A residual add combines the sub-block output (x) with the saved bypass (x_residual) element-wise. Use zip to pair them: [a + b for a, b in zip(x, x_residual)].",
+        "Both residual adds follow the same pattern: x = [a + b for a, b in zip(x, x_residual)]. The first uses the pre-attention x_residual, the second uses the pre-MLP x_residual."
+      ],
+      validate: (code) => {
+        const checks = [
+          { label: "Uses zip(x, x_residual) for element-wise add", ok: /zip\s*\(\s*x\s*,\s*x_residual\s*\)/.test(code) },
+          { label: "Adds a + b (or b + a)", ok: /a\s*\+\s*b/.test(code) || /b\s*\+\s*a/.test(code) },
+          { label: "Uses list comprehension [...]", ok: /\[.*for.*\]/.test(code) },
+          { label: "Pattern appears twice (two residual adds)", ok: (code.match(/zip\s*\(\s*x\s*,\s*x_residual\s*\)/g) || []).length >= 2 },
+        ];
+        const pass = checks.every(c => c.ok);
+        return { pass, checks, message: pass ? "You've assembled a complete transformer layer — the same pattern scales to GPT-4!" : "Both residual adds look the same: x = [a + b for a, b in zip(x, x_residual)]." };
       }
     }
   },

@@ -5,16 +5,9 @@ const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    // Load theme from localStorage
+    // Load theme from localStorage, default to dark
     const saved = localStorage.getItem('microgpt-theme');
     if (saved && THEMES[saved]) return saved;
-
-    // Detect system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-      return 'light';
-    }
-
-    // Default to dark
     return 'dark';
   });
 

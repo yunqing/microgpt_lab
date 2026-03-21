@@ -79,11 +79,11 @@ export function detectBrowserLanguage() {
   return LANGUAGES[langCode] ? langCode : 'en';
 }
 
-// Get saved language or detect browser language
+// Get saved language, default to English
 export function getInitialLanguage() {
   const saved = localStorage.getItem('microgpt-language');
   if (saved && LANGUAGES[saved]) {
     return saved;
   }
-  return detectBrowserLanguage();
+  return 'en';
 }

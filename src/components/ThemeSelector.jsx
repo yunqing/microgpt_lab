@@ -48,11 +48,11 @@ export default function ThemeSelector({ currentTheme, onThemeChange, onClose }) 
                 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`relative p-4 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500/50 ${
-                  isSelected
-                    ? 'border-cyan-500 bg-cyan-500/10'
-                    : `${colors.border.primary} ${colors.bg.hover} border-2`
-                }`}
+                style={{
+                  backgroundColor: theme.cardBg,
+                  borderColor: isSelected ? '#06b6d4' : theme.cardBorder,
+                }}
+                className="relative p-4 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
               >
                 {/* Selected indicator */}
                 {isSelected && (
@@ -70,7 +70,10 @@ export default function ThemeSelector({ currentTheme, onThemeChange, onClose }) 
                   {/* Icon and name */}
                   <div className="flex flex-col items-center gap-2">
                     <span className="text-3xl">{theme.icon}</span>
-                    <span className={`text-sm font-semibold ${isSelected ? 'text-cyan-400' : colors.text.primary}`}>{theme.name}</span>
+                    <span
+                      className="text-sm font-semibold"
+                      style={{ color: isSelected ? '#22d3ee' : theme.cardText }}
+                    >{theme.name}</span>
                   </div>
 
                   {/* Color preview boxes */}

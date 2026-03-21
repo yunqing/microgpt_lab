@@ -5,6 +5,9 @@ export const THEMES = {
     id: 'dark',
     name: 'Dark',
     icon: '🌙',
+    cardBg: '#1e293b',
+    cardText: '#f1f5f9',
+    cardBorder: '#334155',
     colors: {
       // Background
       bg: {
@@ -51,6 +54,9 @@ export const THEMES = {
     id: 'light',
     name: 'Light',
     icon: '☀️',
+    cardBg: '#f9fafb',
+    cardText: '#111827',
+    cardBorder: '#e5e7eb',
     colors: {
       bg: {
         primary: 'bg-white',

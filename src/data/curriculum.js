@@ -87,13 +87,7 @@ The **Value** class implements autograd from scratch. Think of each operation as
 
 **Example**: For multiplication \`a * b\`, the forward pass gives \`a·b\`, and the local gradients are \`∂(a·b)/∂a = b\` and \`∂(a·b)/∂b = a\`.
 
-The \`backward()\` method applies the **chain rule**: if the loss is L and node v has child c with local gradient ∂v/∂c, then:
-
-\`\`\`
-∂L/∂c += (∂v/∂c) × (∂L/∂v)
-\`\`\`
-
-This is just multiplying rates of change along paths! Like: "car is 2x faster than bike, bike is 4x faster than walking, so car is 2×4=8x faster than walking."
+The \`backward()\` method applies the **chain rule**: if the loss is L and node v has child c with local gradient ∂v/∂c, then \`∂L/∂c += (∂v/∂c) × (∂L/∂v)\` — just multiplying rates of change along paths.
 
 **Production difference**: PyTorch does the same thing but on tensors (arrays) instead of scalars, running on GPUs for massive parallelism.`,
       insight: {
@@ -183,94 +177,66 @@ microgpt applies RMSNorm before each attention block and MLP — keeping signals
   },
   {
     id: 5,
-    title: "QKV Split",
-    subtitle: "One vector becomes three",
-    icon: "Scissors",
+    title: "Multi-Head Attention",
+    subtitle: "QKV → heads → aggregate",
+    icon: "Eye",
     color: "violet",
-    paramContrib: 3072,
-    codeLines: [118, 122],
-    code: `# Three separate learned projections:
-q = linear(x, state_dict['layer0.attn_wq'])  # Query
-k = linear(x, state_dict['layer0.attn_wk'])  # Key
-v = linear(x, state_dict['layer0.attn_wv'])  # Value
-
-# Each is shape [n_embd] = [16]
-# Then split into n_head=4 heads, each head_dim=4
-
-for h in range(n_head):
-    hs = h * head_dim          # head start index
-    q_h = q[hs:hs+head_dim]   # this head's query
-    k_h = [ki[hs:hs+head_dim] for ki in keys]
-    v_h = [vi[hs:hs+head_dim] for vi in values]`,
-    highlightLines: [2, 3, 4, 11, 12, 13],
+    paramContrib: 4096,
+    codeLines: [108, 134],
+    code: `def gpt(token_id, pos_id, keys, values):
+    # ... embedding ...
+    for li in range(n_layer):
+        x_residual = x
+        x = rmsnorm(x)
+        q = linear(x, state_dict[f'layer{li}.attn_wq'])
+        k = linear(x, state_dict[f'layer{li}.attn_wk'])
+        v = linear(x, state_dict[f'layer{li}.attn_wv'])
+        keys[li].append(k);  values[li].append(v)
+        x_attn = []
+        for h in range(n_head):
+            hs = h * head_dim
+            q_h = q[hs:hs+head_dim]
+            k_h = [ki[hs:hs+head_dim] for ki in keys[li]]
+            v_h = [vi[hs:hs+head_dim] for vi in values[li]]
+            attn_logits = [
+                sum(q_h[j]*k_h[t][j] for j in range(head_dim)) / head_dim**0.5
+                for t in range(len(k_h))
+            ]
+            attn_weights = softmax(attn_logits)
+            head_out = [
+                sum(attn_weights[t]*v_h[t][j] for t in range(len(v_h)))
+                for j in range(head_dim)
+            ]
+            x_attn.extend(head_out)
+        x = linear(x_attn, state_dict[f'layer{li}.attn_wo'])
+        x = [a + b for a, b in zip(x, x_residual)]`,
+    highlightLines: [6, 7, 8, 17, 18, 21, 22, 25, 26],
     content: {
-      heading: "Level 5: The QKV Split",
-      body: `Attention is the **communication mechanism** — the only place where a token at position t can "look" at tokens from the past (positions 0..t-1).
+      heading: "Level 5: Multi-Head Attention",
+      body: `Attention is the **communication mechanism** — the only place where a token at position t can "look" at past tokens.
 
-Every token is projected into three vectors:
-
+Every token is projected into three roles via three learned matrices:
 - **Query (Q)**: "What am I looking for?"
 - **Key (K)**: "What do I contain?"
-- **Value (V)**: "What information do I offer if selected?"
+- **Value (V)**: "What do I offer if selected?"
 
-**Example**: In the name "emma", when at the second "m" trying to predict next, the model might learn a query like "what vowels appeared recently?" The earlier "e" has a key that matches well, gets high attention weight, and its value (vowel information) flows forward.
+**Scaled dot-product**: The similarity Q·K / √head_dim gives a score for each past token. Dividing by √head_dim prevents softmax saturation in high dimensions.
 
-**Multi-head attention** (4 heads here) lets the model attend to different patterns simultaneously — one head might track vowels, another consonants, etc.
+**Multi-head** (4 heads here) lets the model attend to different patterns simultaneously — each head learns a different type of relationship. With head_dim=4, all 4 heads together still produce a 16-dim output.
 
-The dot product Q·K (scaled by 1/√head_dim) measures similarity. Softmax converts these scores to weights summing to 1. Then we take a weighted sum of Value vectors.`,
+**Causal masking**: Future tokens are masked (set to -∞ before softmax), so the model only attends to the past — essential for autoregressive generation.
+
+The **residual connection** x = x_attn + x_residual lets gradients bypass the attention block entirely, preventing vanishing gradients in deeper networks.`,
       insight: {
-        question: "Why scale attention logits by `1/sqrt(head_dim)`?",
-        answer: "Without scaling, dot products grow large with dimension, pushing softmax into saturation (near 0 or 1 gradients). Dividing by √head_dim keeps the variance of dot products ~1.",
-        badge: "Scaling Master"
+        question: "Why use max_val subtraction in the softmax implementation?",
+        answer: "Subtracting the max prevents overflow when exponentiating large logits (e.g., exp(1000) = infinity). It's mathematically equivalent but numerically stable: softmax(x) = softmax(x - max).",
+        badge: "Softmax Sage"
       },
-      visualType: "qkv"
+      visualType: "attentionFull"
     }
   },
   {
     id: 6,
-    title: "Multi-head Attention",
-    subtitle: "Dot-product similarity",
-    icon: "Eye",
-    color: "purple",
-    paramContrib: 1024,
-    codeLines: [123, 133],
-    code: `# For each head h:
-attn_logits = [
-    sum(q_h[j] * k_h[t][j] for j in range(head_dim)) / head_dim**0.5
-    for t in range(len(k_h))
-]
-attn_weights = softmax(attn_logits)  # sum to 1
-
-# Weighted sum of value vectors:
-head_out = [
-    sum(attn_weights[t] * v_h[t][j] for t in range(len(v_h)))
-    for j in range(head_dim)
-]
-x_attn.extend(head_out)  # concat all heads
-
-# Final projection + residual:
-x = linear(x_attn, state_dict['attn_wo'])
-x = [a + b for a, b in zip(x, x_residual)]`,
-    highlightLines: [2, 3, 6, 9, 10, 15, 16],
-    content: {
-      heading: "Level 6: Multi-head Attention",
-      body: `The attention mechanism lets each token **look back at previous tokens** and gather relevant information.
-
-**Step 1**: Compute logits = Q·K^T / √d (how relevant is each past token?)
-**Step 2**: Softmax → attention weights (probabilities summing to 1)
-**Step 3**: Weighted sum of Values → what we actually pass forward
-
-The **residual connection** (\`x = x_attn + x_residual\`) is crucial — it lets gradients flow directly from the loss back to the embeddings, preventing vanishing gradients in deeper networks.`,
-      insight: {
-        question: "Why use `max_val` subtraction in the softmax implementation?",
-        answer: "Subtracting the max prevents overflow when exponentiating large logits (e.g., exp(1000) = infinity). It's mathematically equivalent but numerically stable: softmax(x) = softmax(x - max).",
-        badge: "Softmax Sage"
-      },
-      visualType: "attention"
-    }
-  },
-  {
-    id: 7,
     title: "The MLP",
     subtitle: "FC1 → ReLU → FC2",
     icon: "Zap",
@@ -292,20 +258,77 @@ x = linear(x, state_dict['layer0.mlp_fc2'])
 x = [a + b for a, b in zip(x, x_residual)]`,
     highlightLines: [6, 7, 10, 12],
     content: {
-      heading: "Level 7: The MLP",
+      heading: "Level 6: The MLP",
       body: `After attention (which mixes information **across tokens**), the MLP processes each token **independently** — it's where the model stores factual knowledge.
 
 **FC1** expands from 16 → 64 dimensions (4×). This wider space lets the model represent complex combinations.
 **ReLU** adds non-linearity — without it, the whole network is just a linear transformation.
 **FC2** projects back from 64 → 16.
 
-The expand-then-contract pattern acts as a "feature detector" — neurons in the 64-dim layer specialize in specific patterns.`,
+The expand-then-contract pattern acts as a "feature detector" — neurons in the 64-dim layer specialize in specific patterns. Mechanistic interpretability research shows MLP neurons often correspond to specific linguistic features.`,
       insight: {
         question: "Why does GPT-2 use GeLU while microgpt uses ReLU?",
         answer: "GeLU is smooth (no hard zero cutoff), which can help gradient flow for very deep networks. For tiny microgpt (1 layer), simple ReLU works just as well and is simpler to implement from scratch.",
         badge: "Activation Expert"
       },
       visualType: "mlp"
+    }
+  },
+  {
+    id: 7,
+    title: "The Transformer Block",
+    subtitle: "Full architecture walkthrough",
+    icon: "Layers",
+    color: "cyan",
+    paramContrib: 0,
+    codeLines: [108, 144],
+    code: `def gpt(token_id, pos_id, keys, values):
+    # 1. Embed token + position
+    x = [t + p for t, p in zip(
+        state_dict['wte'][token_id],
+        state_dict['wpe'][pos_id]
+    )]
+    x = rmsnorm(x)
+
+    for li in range(n_layer):  # repeat n_layer times
+        # -- Attention sub-block --
+        x_residual = x
+        x = rmsnorm(x)          # pre-norm
+        # ... QKV attention ...
+        x = [a + b for a, b in zip(x, x_residual)]  # residual
+
+        # -- MLP sub-block --
+        x_residual = x
+        x = rmsnorm(x)          # pre-norm
+        # ... FC1 → ReLU → FC2 ...
+        x = [a + b for a, b in zip(x, x_residual)]  # residual
+
+    # 2. Project to vocabulary logits
+    logits = linear(x, state_dict['lm_head'])
+    return logits`,
+    highlightLines: [3, 4, 5, 7, 9, 11, 12, 14, 16, 17, 18, 20, 23],
+    content: {
+      heading: "Level 7: The Transformer Block",
+      body: `Now that we know each component, let's see how they fit together into the full gpt() function.
+
+The architecture has a clean **two-level structure**:
+1. One embedding step (wte + wpe) at the very start
+2. A repeated loop of transformer layers (n_layer times)
+
+Each **transformer layer** is itself two sub-blocks with the same pattern:
+x_residual = x → RMSNorm → [sub-block] → x += x_residual
+
+This **pre-norm + residual** pattern is the workhorse of modern transformers. The residual creates a "highway" through the network — the gradient can skip any sub-block during backprop.
+
+The **residual stream** concept: think of x as a running sum that accumulates information. Each layer reads from it (via the normed input) and writes to it (via the residual add). The embedding is the first write; the LM head is the final read.
+
+**Scaling up to GPT-3** (175B params) just means: bigger n_embd (12288), more heads (96), deeper n_layer (96) — the architecture is identical.`,
+      insight: {
+        question: "Why does RMSNorm come BEFORE each sub-block (pre-norm) rather than after (post-norm, as in original GPT-2)?",
+        answer: "Pre-norm keeps the residual stream in a predictable scale — the sub-block always receives a normalized input. Post-norm normalizes the output AFTER the residual add, which can cause the residual to dominate and make early training unstable. Pre-norm was adopted by LLaMA, Mistral, and most modern transformers.",
+        badge: "Architect"
+      },
+      visualType: "transformerBlock"
     }
   },
   {
@@ -445,4 +468,4 @@ At each step, the model takes the current token, runs through the full transform
   }
 ];
 
-export const TOTAL_PARAMS = 432 + 3072 + 1024 + 2048 + 864;
+export const TOTAL_PARAMS = 432 + 4096 + 2048 + 864;

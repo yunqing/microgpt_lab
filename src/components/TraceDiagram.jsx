@@ -6,11 +6,12 @@ const STAGES = [
   { id: 2, label: 'Value', sublabel: 'autograd', levels: [2] },
   { id: 3, label: 'Embed', sublabel: 'wte+wpe', levels: [3] },
   { id: 4, label: 'Norm', sublabel: 'RMSNorm', levels: [4] },
-  { id: 5, label: 'Attn', sublabel: 'QKV', levels: [5, 6] },
-  { id: 6, label: 'MLP', sublabel: 'FC+ReLU', levels: [7] },
-  { id: 7, label: 'Loss', sublabel: '-log(p)', levels: [8] },
-  { id: 8, label: 'Adam', sublabel: 'optim', levels: [9] },
-  { id: 9, label: 'Infer', sublabel: 'sample', levels: [10] },
+  { id: 5, label: 'Attn', sublabel: 'QKV+heads', levels: [5] },
+  { id: 6, label: 'MLP', sublabel: 'FC+ReLU', levels: [6] },
+  { id: 7, label: 'Block', sublabel: 'arch', levels: [7] },
+  { id: 8, label: 'Loss', sublabel: '-log(p)', levels: [8] },
+  { id: 9, label: 'Adam', sublabel: 'optim', levels: [9] },
+  { id: 10, label: 'Infer', sublabel: 'sample', levels: [10] },
 ];
 
 export default function TraceDiagram({ currentLevel }) {

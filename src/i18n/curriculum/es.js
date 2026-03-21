@@ -71,45 +71,32 @@ microgpt aplica RMSNorm antes de cada bloque de atención y MLP — manteniendo 
     badge: "Profesional de Estabilidad"
   },
   5: {
-    title: "División QKV",
-    subtitle: "Un vector se convierte en tres",
-    heading: "Nivel 5: La División QKV",
+    title: "Atención Multi-cabeza",
+    subtitle: "Q·K/√d → softmax → V",
+    heading: "Nivel 5: Atención Multi-cabeza",
     body: `La atención es el **mecanismo de comunicación** — el único lugar donde un token en la posición t puede "mirar" tokens del pasado (posiciones 0..t-1).
 
-Cada token se proyecta en tres vectores:
+Cada token se proyecta en tres roles mediante tres matrices aprendidas:
 
 - **Query (Q)**: "¿Qué estoy buscando?"
 - **Key (K)**: "¿Qué contengo?"
 - **Value (V)**: "¿Qué información ofrezco si soy seleccionado?"
 
-**Ejemplo**: En el nombre "emma", cuando estás en la segunda "m" intentando predecir lo siguiente, el modelo podría aprender una consulta como "¿qué vocales aparecieron recientemente?" La "e" anterior tiene una clave que coincide bien, obtiene un peso de atención alto, y su valor (información de vocal) fluye hacia adelante.
+**Producto punto escalado**: La similitud Q·K / √head_dim da una puntuación por cada token pasado. Dividir por √head_dim evita la saturación de softmax en altas dimensiones.
 
-**Multi-head attention** (4 cabezas aquí) permite al modelo atender a diferentes patrones simultáneamente — una cabeza podría rastrear vocales, otra consonantes, etc.
+**Multi-head** (4 cabezas aquí) permite al modelo atender a diferentes patrones simultáneamente — cada cabeza aprende un tipo diferente de relación. Con head_dim=4, las 4 cabezas combinadas producen una salida de 16 dimensiones.
 
-El producto punto Q·K (escalado por 1/√head_dim) mide la similitud. Softmax convierte estos puntajes en pesos que suman 1. Luego tomamos una suma ponderada de vectores Value.`,
-    question: "¿Por qué escalar los logits de atención por `1/sqrt(head_dim)`?",
-    answer: "Sin escalado, los productos punto crecen con la dimensión, empujando softmax hacia la saturación (gradientes cercanos a 0 o 1). Dividir por √head_dim mantiene la varianza de los productos punto ~1.",
-    badge: "Maestro del Escalado"
-  },
-  6: {
-    title: "Atención Multi-cabeza",
-    subtitle: "Similitud por producto punto",
-    heading: "Nivel 6: Atención Multi-cabeza",
-    body: `El mecanismo de atención permite que cada token **mire hacia atrás a tokens anteriores** y recopile información relevante.
+**Máscara causal**: Los tokens futuros se enmascaran (se establecen en -∞ antes de softmax), por lo que el modelo solo atiende al pasado — esencial para la generación autorregresiva.
 
-**Paso 1**: Calcular logits = Q·K^T / √d (¿qué tan relevante es cada token pasado?)
-**Paso 2**: Softmax → pesos de atención (probabilidades que suman 1)
-**Paso 3**: Suma ponderada de Values → lo que realmente pasamos hacia adelante
-
-La **conexión residual** (\`x = x_attn + x_residual\`) es crucial — permite que los gradientes fluyan directamente desde la pérdida hasta las incrustaciones, previniendo gradientes que desaparecen en redes más profundas.`,
-    question: "¿Por qué usar la sustracción de `max_val` en la implementación de softmax?",
+La **conexión residual** x = x_attn + x_residual permite que los gradientes bypaseen completamente el bloque de atención, previniendo gradientes que desaparecen en redes más profundas.`,
+    question: "¿Por qué usar la sustracción de max_val en la implementación de softmax?",
     answer: "Restar el máximo previene el desbordamiento al exponenciar logits grandes (ej., exp(1000) = infinito). Es matemáticamente equivalente pero numéricamente estable: softmax(x) = softmax(x - max).",
     badge: "Sabio del Softmax"
   },
-  7: {
+  6: {
     title: "El MLP",
     subtitle: "FC1 → ReLU → FC2",
-    heading: "Nivel 7: El MLP",
+    heading: "Nivel 6: El MLP",
     body: `Después de la atención (que mezcla información **entre tokens**), el MLP procesa cada token **independientemente** — es donde el modelo almacena conocimiento factual.
 
 **FC1** expande de 16 → 64 dimensiones (4×). Este espacio más amplio permite al modelo representar combinaciones complejas.
@@ -120,6 +107,28 @@ El patrón expandir-contraer actúa como un "detector de características" — l
     question: "¿Por qué GPT-2 usa GeLU mientras microgpt usa ReLU?",
     answer: "GeLU es suave (sin corte duro en cero), lo que puede ayudar al flujo de gradientes en redes muy profundas. Para el pequeño microgpt (1 capa), el simple ReLU funciona igual de bien y es más simple de implementar desde cero.",
     badge: "Experto en Activación"
+  },
+  7: {
+    title: "El Bloque Transformer",
+    subtitle: "Pre-norm + flujo residual",
+    heading: "Nivel 7: El Bloque Transformer",
+    body: `Ahora que conocemos cada componente, veamos cómo encajan en la función gpt() completa.
+
+La arquitectura tiene una **estructura de dos niveles** clara:
+1. Un paso de embedding al inicio (wte + wpe)
+2. Un bucle repetido de capas transformer (n_layer veces)
+
+Cada **capa transformer** son dos sub-bloques con el mismo patrón:
+x_residual = x → RMSNorm → [sub-bloque] → x += x_residual
+
+Este patrón de **pre-norm + residual** es el motor de los transformers modernos. El residual crea una "autopista" a través de la red — el gradiente puede saltarse cualquier sub-bloque durante la retropropagación.
+
+El concepto de **flujo residual**: piensa en x como una suma acumulativa que acumula información. Cada capa lee de ella (a través de la entrada normalizada) y escribe en ella (a través de la suma residual). El embedding es la primera escritura; el LM head es la última lectura.
+
+**Escalado a GPT-3** (175B parámetros) solo requiere: mayor n_embd (12288), más cabezas (96), n_layer más profundo (96) — la arquitectura es idéntica.`,
+    question: "¿Por qué RMSNorm se aplica ANTES de cada sub-bloque (pre-norm) en lugar de después (post-norm, como en el GPT-2 original)?",
+    answer: "Pre-norm mantiene el flujo residual en una escala predecible — el sub-bloque siempre recibe una entrada normalizada. Post-norm normaliza la salida DESPUÉS de la suma residual, lo que puede hacer que el residual domine y desestabilice el entrenamiento temprano. Pre-norm fue adoptado por LLaMA, Mistral y la mayoría de los transformers modernos.",
+    badge: "Arquitecto"
   },
   8: {
     title: "La Pérdida",

@@ -71,45 +71,32 @@ microgpt applique RMSNorm avant chaque bloc d'attention et MLP — gardant les s
     badge: "Pro de la Stabilité"
   },
   5: {
-    title: "Division QKV",
-    subtitle: "Un vecteur devient trois",
-    heading: "Niveau 5 : La Division QKV",
+    title: "Attention Multi-têtes",
+    subtitle: "Q·K/√d → softmax → V",
+    heading: "Niveau 5 : Attention Multi-têtes",
     body: `L'attention est le **mécanisme de communication** — le seul endroit où un token à la position t peut "regarder" les tokens du passé (positions 0..t-1).
 
-Chaque token est projeté en trois vecteurs :
+Chaque token est projeté dans trois rôles via trois matrices apprises :
 
 - **Query (Q)** : "Que cherche-je ?"
 - **Key (K)** : "Que contiens-je ?"
 - **Value (V)** : "Quelle information j'offre si je suis sélectionné ?"
 
-**Exemple** : Dans le nom "emma", lorsqu'on est au deuxième "m" en essayant de prédire la suite, le modèle pourrait apprendre une requête du type "quelles voyelles sont apparues récemment ?" Le "e" précédent a une clé qui correspond bien, obtient un poids d'attention élevé, et sa valeur (information de voyelle) se propage vers l'avant.
+**Produit scalaire mis à l'échelle** : La similarité Q·K / √head_dim donne un score pour chaque token passé. Diviser par √head_dim évite la saturation de softmax en hautes dimensions.
 
-**Multi-head attention** (4 têtes ici) permet au modèle d'assister à différents motifs simultanément — une tête pourrait suivre les voyelles, une autre les consonnes, etc.
+**Multi-head** (4 têtes ici) permet au modèle d'assister à différents motifs simultanément — chaque tête apprend un type de relation différent. Avec head_dim=4, les 4 têtes combinées produisent toujours une sortie de 16 dimensions.
 
-Le produit scalaire Q·K (mis à l'échelle par 1/√head_dim) mesure la similarité. Softmax convertit ces scores en poids sommant à 1. Ensuite, nous prenons une somme pondérée des vecteurs Value.`,
-    question: "Pourquoi mettre à l'échelle les logits d'attention par `1/sqrt(head_dim)` ?",
-    answer: "Sans mise à l'échelle, les produits scalaires augmentent avec la dimension, poussant softmax vers la saturation (gradients proches de 0 ou 1). Diviser par √head_dim maintient la variance des produits scalaires ~1.",
-    badge: "Maître du Scaling"
-  },
-  6: {
-    title: "Attention Multi-têtes",
-    subtitle: "Similarité par produit scalaire",
-    heading: "Niveau 6 : Attention Multi-têtes",
-    body: `Le mécanisme d'attention permet à chaque token de **regarder en arrière les tokens précédents** et de rassembler des informations pertinentes.
+**Masquage causal** : Les tokens futurs sont masqués (mis à -∞ avant softmax), donc le modèle n'assiste qu'au passé — essentiel pour la génération autorégressive.
 
-**Étape 1** : Calculer logits = Q·K^T / √d (à quel point chaque token passé est-il pertinent ?)
-**Étape 2** : Softmax → poids d'attention (probabilités sommant à 1)
-**Étape 3** : Somme pondérée des Values → ce que nous transmettons réellement
-
-La **connexion résiduelle** (\`x = x_attn + x_residual\`) est cruciale — elle permet aux gradients de circuler directement de la perte vers les embeddings, empêchant la disparition des gradients dans les réseaux plus profonds.`,
-    question: "Pourquoi utiliser la soustraction de `max_val` dans l'implémentation softmax ?",
+La **connexion résiduelle** x = x_attn + x_residual permet aux gradients de bypasser complètement le bloc d'attention, empêchant la disparition des gradients dans les réseaux plus profonds.`,
+    question: "Pourquoi utiliser la soustraction de max_val dans l'implémentation softmax ?",
     answer: "Soustraire le max empêche le débordement lors de l'exponentiation de grands logits (par ex., exp(1000) = infini). C'est mathématiquement équivalent mais numériquement stable : softmax(x) = softmax(x - max).",
     badge: "Sage du Softmax"
   },
-  7: {
+  6: {
     title: "Le MLP",
     subtitle: "FC1 → ReLU → FC2",
-    heading: "Niveau 7 : Le MLP",
+    heading: "Niveau 6 : Le MLP",
     body: `Après l'attention (qui mélange l'information **entre tokens**), le MLP traite chaque token **indépendamment** — c'est là que le modèle stocke les connaissances factuelles.
 
 **FC1** étend de 16 → 64 dimensions (4×). Cet espace plus large permet au modèle de représenter des combinaisons complexes.
@@ -120,6 +107,28 @@ Le modèle expansion-contraction agit comme un "détecteur de caractéristiques"
     question: "Pourquoi GPT-2 utilise GeLU tandis que microgpt utilise ReLU ?",
     answer: "GeLU est lisse (pas de coupure brutale à zéro), ce qui peut aider le flux de gradient pour les réseaux très profonds. Pour le petit microgpt (1 couche), le simple ReLU fonctionne tout aussi bien et est plus simple à implémenter from scratch.",
     badge: "Expert en Activation"
+  },
+  7: {
+    title: "Le Bloc Transformer",
+    subtitle: "Pre-norm + flux résiduel",
+    heading: "Niveau 7 : Le Bloc Transformer",
+    body: `Maintenant que nous connaissons chaque composant, voyons comment ils s'assemblent dans la fonction gpt() complète.
+
+L'architecture a une **structure à deux niveaux** claire :
+1. Une étape d'embedding unique au tout début (wte + wpe)
+2. Une boucle répétée de couches transformer (n_layer fois)
+
+Chaque **couche transformer** est composée de deux sous-blocs suivant le même schéma :
+x_residual = x → RMSNorm → [sous-bloc] → x += x_residual
+
+Ce schéma **pre-norm + résiduel** est le moteur des transformers modernes. Le résiduel crée une "autoroute" à travers le réseau — le gradient peut sauter n'importe quel sous-bloc lors de la rétropropagation.
+
+Le concept de **flux résiduel** : pensez à x comme une somme cumulative qui accumule de l'information. Chaque couche lit depuis elle (via l'entrée normalisée) et y écrit (via l'addition résiduelle). L'embedding est la première écriture ; la tête LM est la dernière lecture.
+
+**Montée en échelle vers GPT-3** (175 milliards de paramètres) nécessite simplement : un n_embd plus grand (12288), plus de têtes (96), un n_layer plus profond (96) — l'architecture est identique.`,
+    question: "Pourquoi RMSNorm est-il appliqué AVANT chaque sous-bloc (pre-norm) plutôt qu'après (post-norm, comme dans le GPT-2 original) ?",
+    answer: "Le pre-norm maintient le flux résiduel à une échelle prévisible — le sous-bloc reçoit toujours une entrée normalisée. Le post-norm normalise la sortie APRÈS l'addition résiduelle, ce qui peut amener le résiduel à dominer et déstabiliser l'entraînement précoce. Le pre-norm a été adopté par LLaMA, Mistral et la plupart des transformers modernes.",
+    badge: "Architecte"
   },
   8: {
     title: "La Perte",

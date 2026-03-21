@@ -5,7 +5,9 @@ import EmbeddingViz from '../visualizations/EmbeddingViz';
 import RMSNormViz from '../visualizations/RMSNormViz';
 import QKVViz from '../visualizations/QKVViz';
 import AttentionViz from '../visualizations/AttentionViz';
+import AttentionFullViz from '../visualizations/AttentionFullViz';
 import MLPViz from '../visualizations/MLPViz';
+import TransformerBlockViz from '../visualizations/TransformerBlockViz';
 import LossViz from '../visualizations/LossViz';
 import AdamViz from '../visualizations/AdamViz';
 import InferenceViz from '../visualizations/InferenceViz';
@@ -19,7 +21,9 @@ const VIZ_MAP = {
   rmsnorm: RMSNormViz,
   qkv: QKVViz,
   attention: AttentionViz,
+  attentionFull: AttentionFullViz,
   mlp: MLPViz,
+  transformerBlock: TransformerBlockViz,
   loss: LossViz,
   adam: AdamViz,
   inference: InferenceViz,
