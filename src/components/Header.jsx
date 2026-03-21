@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion';
-import { Cpu, Award, Menu, Star, Info, Palette, Zap, Globe } from 'lucide-react';
+import { Cpu, Award, Menu, Star, Info, Palette, Zap, Globe, MoreVertical } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useState } from 'react';
 
 export default function Header({ completedLevels, earnedBadges, totalParams, paramProgress, onMenuClick, currentLevel, onAboutClick, onThemeClick, onLanguageClick, onTrainClick }) {
   const { colors } = useTheme();
   const { t, languageInfo } = useLanguage();
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   return (
     <header className={`flex items-center justify-between px-3 sm:px-6 py-3 ${colors.bg.primary} ${colors.border.primary} border-b z-10`}>
@@ -109,16 +111,67 @@ export default function Header({ completedLevels, earnedBadges, totalParams, par
           <span className="text-xs text-slate-300 group-hover:text-slate-100 font-medium">{t('header.star')}</span>
         </a>
 
-        {/* Mobile GitHub Star (icon only) */}
-        <a
-          href="https://github.com/yunqing/microgpt_lab"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="sm:hidden flex items-center justify-center w-11 h-11 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-          aria-label="Star on GitHub"
-        >
-          <Star size={16} className="text-slate-400" />
-        </a>
+        {/* Mobile Menu Button */}
+        <div className="sm:hidden relative">
+          <button
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="flex items-center justify-center w-9 h-9 hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+            aria-label="More options"
+          >
+            <MoreVertical size={18} className="text-slate-400" />
+          </button>
+
+          {/* Mobile Dropdown Menu */}
+          {showMobileMenu && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setShowMobileMenu(false)}
+              />
+              <div className="absolute right-0 top-full mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 py-1">
+                <button
+                  onClick={() => { onTrainClick(); setShowMobileMenu(false); }}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-700 transition-colors text-left"
+                >
+                  <Zap size={16} className="text-purple-400" />
+                  <span className="text-sm text-slate-300">{t('header.train')}</span>
+                </button>
+                <button
+                  onClick={() => { onLanguageClick(); setShowMobileMenu(false); }}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-700 transition-colors text-left"
+                >
+                  <Globe size={16} className="text-slate-400" />
+                  <span className="text-sm text-slate-300">{languageInfo.nativeName}</span>
+                </button>
+                <button
+                  onClick={() => { onThemeClick(); setShowMobileMenu(false); }}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-700 transition-colors text-left"
+                >
+                  <Palette size={16} className="text-slate-400" />
+                  <span className="text-sm text-slate-300">{t('theme.title')}</span>
+                </button>
+                <button
+                  onClick={() => { onAboutClick(); setShowMobileMenu(false); }}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-700 transition-colors text-left"
+                >
+                  <Info size={16} className="text-slate-400" />
+                  <span className="text-sm text-slate-300">{t('about.title')}</span>
+                </button>
+                <div className="border-t border-slate-700 my-1" />
+                <a
+                  href="https://github.com/yunqing/microgpt_lab"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-700 transition-colors"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  <Star size={16} className="text-yellow-400" />
+                  <span className="text-sm text-slate-300">{t('header.star')}</span>
+                </a>
+              </div>
+            </>
+          )}
+        </div>
 
         <div className="flex items-center gap-1">
           <Award size={12} className="text-yellow-400 sm:w-3.5 sm:h-3.5" />
