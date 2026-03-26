@@ -80,6 +80,7 @@ export const es = {
     template: 'Plantilla de Código',
     hint: 'Pista',
     solution: 'Solución',
+    useSolution: 'Usar esta solución',
     attempts: 'intento',
     attemptsPlural: 'intentos',
     checking: 'Verificando...',

@@ -80,6 +80,7 @@ export const ja = {
     template: 'コードテンプレート',
     hint: 'ヒント',
     solution: '解答',
+    useSolution: 'この解答を使用',
     attempts: '回の試行',
     attemptsPlural: '回の試行',
     checking: '確認中...',

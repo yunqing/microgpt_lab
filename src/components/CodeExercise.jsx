@@ -263,7 +263,7 @@ export default function CodeExercise({ exercise, levelId }) {
                     onClick={() => { setCode(exercise.solution); setSolutionShown(false); setResult(null); }}
                     className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
                   >
-                    ← {t('exercise.solution')}
+                    ← {t('exercise.useSolution')}
                   </button>
                 </div>
               </div>

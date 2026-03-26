@@ -80,6 +80,7 @@ export const fr = {
     template: 'Modèle de Code',
     hint: 'Indice',
     solution: 'Solution',
+    useSolution: 'Utiliser cette solution',
     attempts: 'tentative',
     attemptsPlural: 'tentatives',
     checking: 'Vérification...',

@@ -83,6 +83,8 @@ ${testCase.setupCode || ''}
 
 ${userCode}
 
+${testCase.postCode || ''}
+
 # Extract results
 _result = {
   ${testCase.checkVariables.map(v => `'${v}': ${v}`).join(',\n  ')}

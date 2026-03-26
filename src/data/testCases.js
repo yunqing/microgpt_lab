@@ -45,62 +45,69 @@ export const TEST_CASES = {
     testCases: [
       {
         description: 'Simple addition: 3.0 + 4.0',
-        setupCode: `
-class Value:
-    def __init__(self, data):
-        self.data = data
-        self._local_grads = []
-        self._children = ()
-
-    def __repr__(self):
-        return f"Value(data={self.data})"
-
+        setupCode: '',
+        postCode: `
 a = Value(3.0)
 b = Value(4.0)
+c = a + b
+_c_data = c.data
+_c_has_children = len(c._children) > 0
 `,
-        checkVariables: ['c'],
+        checkVariables: ['_c_data', '_c_has_children'],
         expectedOutputs: {
-          c: { data: 7.0, has_children: true }
+          _c_data: 7.0,
+          _c_has_children: true
         }
       },
       {
         description: 'Addition with zero',
-        setupCode: `
-class Value:
-    def __init__(self, data):
-        self.data = data
-        self._local_grads = []
-        self._children = ()
-
-    def __repr__(self):
-        return f"Value(data={self.data})"
-
+        setupCode: '',
+        postCode: `
 a = Value(0.0)
 b = Value(5.0)
+c = a + b
+_c_data = c.data
+_c_has_children = len(c._children) > 0
 `,
-        checkVariables: ['c'],
+        checkVariables: ['_c_data', '_c_has_children'],
         expectedOutputs: {
-          c: { data: 5.0, has_children: true }
+          _c_data: 5.0,
+          _c_has_children: true
         }
       },
       {
         description: 'Addition with negative numbers',
-        setupCode: `
-class Value:
-    def __init__(self, data):
-        self.data = data
-        self._local_grads = []
-        self._children = ()
-
-    def __repr__(self):
-        return f"Value(data={self.data})"
-
+        setupCode: '',
+        postCode: `
 a = Value(-2.5)
 b = Value(7.5)
+c = a + b
+_c_data = c.data
+_c_has_children = len(c._children) > 0
 `,
-        checkVariables: ['c'],
+        checkVariables: ['_c_data', '_c_has_children'],
         expectedOutputs: {
-          c: { data: 5.0, has_children: true }
+          _c_data: 5.0,
+          _c_has_children: true
+        }
+      },
+      {
+        description: 'Gradient check: a.grad and b.grad should both be 1.0',
+        setupCode: '',
+        postCode: `
+a = Value(3.0)
+b = Value(4.0)
+c = a + b
+c.grad = 1.0
+for child, lg in zip(c._children, c._local_grads):
+    child.grad += lg * c.grad
+_a_grad = a.grad
+_b_grad = b.grad
+`,
+        checkVariables: ['_a_grad', '_b_grad'],
+        expectedOutputs: {
+          _a_grad: 1.0,
+          _b_grad: 1.0
         }
       }
     ]

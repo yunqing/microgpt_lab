@@ -107,7 +107,8 @@ function formatValue(value) {
  */
 function formatChecks(testResults) {
   return testResults.map((result, index) => {
-    const setupInfo = result.setupCode ? `\n📋 Test input:\n${result.setupCode.trim()}` : '';
+    const inputCode = result.postCode || result.setupCode;
+    const setupInfo = inputCode ? `\n📋 Test input:\n${inputCode.trim()}` : '';
 
     if (!result.executed) {
       return {
@@ -186,6 +187,7 @@ export async function validateExercise(code, exercise) {
       testResults.push({
         description: testCase.description,
         setupCode: testCase.setupCode,
+        postCode: testCase.postCode,
         executed: false,
         passed: false,
         error: result.error,
@@ -204,6 +206,7 @@ export async function validateExercise(code, exercise) {
     testResults.push({
       description: testCase.description,
       setupCode: testCase.setupCode,
+      postCode: testCase.postCode,
       executed: true,
       passed: comparison.passed,
       mismatches: comparison.mismatches,

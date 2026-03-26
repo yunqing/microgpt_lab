@@ -80,6 +80,7 @@ export const zh = {
     template: '代码模板',
     hint: '提示',
     solution: '答案',
+    useSolution: '使用此答案',
     attempts: '次尝试',
     attemptsPlural: '次尝试',
     checking: '检查中...',
